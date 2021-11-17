@@ -74,13 +74,13 @@ dffm = function(X, pace = FALSE, criterion = FALSE, observationgrid = NULL, user
     if(sum(is.na(X[,1])) > 0 | sum(is.na(X[,dim(X)[2]])) > 0)stop("first and last column of X has to be without NA")}
   if(!is.null(K)){
     if(class(X)[1] == "mts" | class(X)[1] == "xts"){
-      if(K > dim(X)[2]) stop("K is larger than the available number of components")
+      if(K > dim(X)[2]+2) stop("K is larger than the available number of components")
     }
     if(class(X)[1] == "fd"){
-      if(K > X$basis$nbasis) stop("K is larger than the available number of components")
+      if(K > X$basis$nbasis+2) stop("K is larger than the available number of components")
     }
     if(class(X)[1] == "FPCA"){
-      if(K > length(X$lambda)) stop("K is larger than the available number of components")
+      if(K > length(X$lambda)+2) stop("K is larger than the available number of components")
     }
   }
   p = NULL
