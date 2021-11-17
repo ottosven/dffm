@@ -605,7 +605,7 @@ dffm.preprocessing = function(data, pace = FALSE, observationgrid = NULL, user.g
   YieldFdPar = fdPar(fdobj = splinebasis, Lfdobj = 2, lambda = lambda)
   output = smooth.basis(breakpoints, t(data), YieldFdPar)$fd
   # pace
-  K = length(observationgrid)
+  K = length(observationgrid)+2
   if(pace == TRUE){
     if(class(data)[1] == "data.frame") data = ts(data)
     Ly = lapply(seq(length.out = nrow(data)), function(i) na.omit(data[i,]))
