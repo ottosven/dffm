@@ -74,13 +74,13 @@ dffm = function(X, pace = FALSE, criterion = FALSE, observationgrid = NULL, user
     if(sum(is.na(X[,1])) > 0 | sum(is.na(X[,dim(X)[2]])) > 0)stop("first and last column of X has to be without NA")}
   if(!is.null(K)){
     if(class(X)[1] == "mts" | class(X)[1] == "xts"){
-      if(K > dim(X)[2]) stop("K is larger than the available number of components")
+      if(K > dim(X)[2]+2) stop("K is larger than the available number of components")
     }
     if(class(X)[1] == "fd"){
-      if(K > X$basis$nbasis) stop("K is larger than the available number of components")
+      if(K > X$basis$nbasis+2) stop("K is larger than the available number of components")
     }
     if(class(X)[1] == "FPCA"){
-      if(K > length(X$lambda)) stop("K is larger than the available number of components")
+      if(K > length(X$lambda)+2) stop("K is larger than the available number of components")
     }
   }
   p = NULL
@@ -113,7 +113,7 @@ dffm = function(X, pace = FALSE, criterion = FALSE, observationgrid = NULL, user
       eigenvalues = X$lambda
       observationgrid = obse.name
       user.gridsize = grid.name
-      }
+    }
     ## ts
     #fd
     if(class(X)[1] == "xts" & pace == FALSE | class(X)[1] == "mts" & pace == FALSE){
@@ -280,7 +280,7 @@ dffm = function(X, pace = FALSE, criterion = FALSE, observationgrid = NULL, user
     if(K == 1){
       eigenfunctions = as.matrix(eigenfunctions)
       factorscores = as.matrix(factorscores)
-      }
+    }
     dimnames(eigenfunctions) = list(g, paste("PC", 1:K))
     meanfunction = matrix(meanfunction, dimnames = list(g, "mean"))
     dimnames(factorscores) = list(1:dim(X$xiEst)[1], paste("Factor", 1:K))
@@ -605,7 +605,7 @@ dffm.preprocessing = function(data, pace = FALSE, observationgrid = NULL, user.g
   YieldFdPar = fdPar(fdobj = splinebasis, Lfdobj = 2, lambda = lambda)
   output = smooth.basis(breakpoints, t(data), YieldFdPar)$fd
   # pace
-  K = length(observationgrid)
+  K = length(observationgrid)+2
   if(pace == TRUE){
     if(class(data)[1] == "data.frame") data = ts(data)
     Ly = lapply(seq(length.out = nrow(data)), function(i) na.omit(data[i,]))
@@ -647,7 +647,7 @@ dffm.criterion = function(x, K.max=NULL, p.max=NULL){
   q = dim(Fhat)[1]
   if(q<100)q=100
   if(is.null(K.max)){
-  K.max = dim(Fhat)[2]
+    K.max = dim(Fhat)[2]
   }
   if(is.null(p.max))  p.max= 8*floor(q/100)^(1/4) # according to Schwert (1989)
   ## Evaluate IC
@@ -698,15 +698,10 @@ VAR.forecast = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     }
     predicted.factors = do.call(cbind, sep.pred)
   }
-  if(length(x$eigenvalues) == 1 & class(x$fitted.data)[1] == "mts"){
-    if(frequency(x$fitted.data) == 12) freq = "month"
-    if(frequency(x$fitted.data) == 1) freq = "day"
-    if(frequency(x$fitted.data) == 4) freq = "quarter"
-    dates <- seq(tail(as.Date(x$fitted.data), 1), by = freq, length.out = h+1)[-1]
-    predicted.factors = xts(predicted.factors, order.by = dates)
-    if(dim(predicted.factors)[1] != 1) predicted.factors = ts_ts(predicted.factors)
-    if(h == 1) colnames(predicted.factors) = paste("Factor", 1)
+  if(class(x$fitted.data)[1] == "mts"){
+    predicted.factors = ts(predicted.factors, start = tail(time(x$fitted.data),1) + 1/frequency(x$fitted.data), frequency = frequency(x$fitted.data))
   }
+  if(class(x$fitted.data)[1] != "mts"){rownames(predicted.factors) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(temp)[1])}
   return(predicted.factors)
 }
 
@@ -744,6 +739,8 @@ dffm.predict = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     p = as.numeric(IC$IC.min[1])
     K = as.numeric(IC$IC.min[2])
   }
+  if(K > length(x$eigenvalues)) stop("K is greater then the number of possible components")
+  if(K < 0) stop("K is not allowed to be negative")
   if(class(x$fitted.data)[1] == "mts"){
     if(sum(is.na(x$fitted.data))>0){
       x$factorscores = ts_xts(x$factorscores)
@@ -768,6 +765,14 @@ dffm.predict = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     fitt = ts(fitt, start = tail(time(x$fitted.data),1) + 1/frequency(x$fitted.data), frequency = frequency(x$fitted.data))
   }
   if(class(x$fitted.data)[1] != "mts"){rownames(fitt) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(temp)[1])}
+  if(K == 0){
+    fitt = matrix(NA, nrow = h, ncol = dim(x$meanfunction)[1])
+    for (i in 1:h){
+      fitt[i,] = x$meanfunction
+    }
+    if(class(x$fitted.data)[1] == "mts"){
+      fitt = ts(fitt, start = tail(time(x$fitted.data),1) + 1/frequency(x$fitted.data), frequency = frequency(x$fitted.data))}
+    if(class(x$fitted.data)[1] != "mts"){rownames(fitt) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(fitt)[1])}}
   colnames(fitt) = x$basis$workgrid
   fitted.values = fitt
   output = list("predicted.values" = fitted.values, "predicted.factors" = f.cast)
