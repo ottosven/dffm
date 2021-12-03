@@ -34,7 +34,7 @@ NULL
 #' d = dffm(d)
 #' predict(d)
 predict.dffm = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K = NULL){
-  if(class(x) != "dffm") stop('x must be class "dffm"')
+  if(class(x)[1] != "dffm") stop('x must be class "dffm"')
   if(criterion == TRUE & !is.null(p) | criterion == TRUE & !is.null(K)| criterion == TRUE & !is.null(K) & !is.null(p)){
     stop("please use either criterion or predetermined K and/or p")}
   if(criterion == TRUE){
@@ -42,8 +42,6 @@ predict.dffm = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     p = as.numeric(IC$IC.min[1])
     K = as.numeric(IC$IC.min[2])
   }
-  if(K > length(x$eigenvalues)) stop("K is greater then the number of possible components")
-  if(K < 0) stop("K is not allowed to be negative")
   if(class(x$fitted.data)[1] == "mts"){
     if(sum(is.na(x$fitted.data))>0){
       x$factorscores = ts_xts(x$factorscores)
@@ -58,6 +56,8 @@ predict.dffm = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
   if(criterion == FALSE & is.null(K)){K = length(x$eigenvalues)}
   if(criterion == FALSE & is.null(p)){p = 8}
   if(is.null(h)){h = 1}
+  if(K > length(x$eigenvalues)+2) stop("K is greater then the number of possible components")
+  if(K < 0) stop("K is not allowed to be negative")
   f.cast = VAR.forecast(x, h = h, AR = AR, p = p, K = K)
   temp = f.cast %*% t(x$loadingfunctions[,1:K])
   fitt = matrix(NA, ncol = dim(temp)[2], nrow = dim(temp)[1])
@@ -75,7 +75,8 @@ predict.dffm = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     }
     if(class(x$fitted.data)[1] == "mts"){
       fitt = ts(fitt, start = tail(time(x$fitted.data),1) + 1/frequency(x$fitted.data), frequency = frequency(x$fitted.data))}
-    if(class(x$fitted.data)[1] != "mts"){rownames(fitt) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(fitt)[1])}}
+    if(class(x$fitted.data)[1] != "mts"){rownames(fitt) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(fitt)[1])}
+    f.cast = NULL}
   colnames(fitt) = x$basis$workgrid
   fitted.values = fitt
   output = list("predicted.values" = fitted.values, "predicted.factors" = f.cast)
