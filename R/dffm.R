@@ -641,7 +641,7 @@ dffm.preprocessing = function(data, pace = FALSE, observationgrid = NULL, user.g
 #' d = dffm(d)
 #' dffm.criterion(d)
 dffm.criterion = function(x, K.max=NULL, p.max=NULL){
-  if(class(x) != "dffm") stop('x must be class "dffm"')
+  if(class(x)[1] != "dffm") stop('x must be class "dffm"')
   Fhat = x$factorscores
   T = dim(Fhat)[1]
   q = dim(Fhat)[1]
@@ -673,9 +673,11 @@ dffm.criterion = function(x, K.max=NULL, p.max=NULL){
 }
 
 VAR.forecast = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K = NULL){
-  if(class(x) != "dffm") stop('x must be class "dffm"')
+  if(class(x)[1] != "dffm") stop('x must be class "dffm"')
   if(criterion == TRUE & !is.null(p) | criterion == TRUE & !is.null(K)| criterion == TRUE & !is.null(K) & !is.null(p)){
     stop("please use either criterion or predetermined K and/or p")}
+  if(is.null(h)){h = 1}
+  if(h <= 0) stop("h has to be positive and greater 0")
   if(criterion == TRUE){
     IC = dffm.criterion(x)
     p = as.numeric(IC$IC.min[1])
@@ -683,7 +685,6 @@ VAR.forecast = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
   }
   if(criterion == FALSE & is.null(K)){K = length(x$eigenvalues)}
   if(criterion == FALSE & is.null(p)){p = 8}
-  if(is.null(h)){h = 1}
   if(K > length(x$eigenvalues)) stop("K is greater than number of components in the 'dffm' object")
   factors = x$factorscores[,1:K]
   if(K == 1) factors = as.matrix(factors)
@@ -701,7 +702,33 @@ VAR.forecast = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
   if(class(x$fitted.data)[1] == "mts"){
     predicted.factors = ts(predicted.factors, start = tail(time(x$fitted.data),1) + 1/frequency(x$fitted.data), frequency = frequency(x$fitted.data))
   }
-  if(class(x$fitted.data)[1] != "mts"){rownames(predicted.factors) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(temp)[1])}
+  if(class(x$fitted.data)[1] != "mts"){
+    if(h == 1){
+      dimr1 = dim(x$fitted.data)[1]+1
+      A = matrix(NA, nrow = 1, ncol = length(predicted.factors))
+      dimnames(A) = list(dimr1,paste("Factor", 1:length(predicted.factors)))
+      A[1,] = predicted.factors
+      predicted.factors = A
+    }
+    else {
+      if(K == 1 | K == 0){
+        dim1 = dim(x$fitted.data)[1]+1
+        dim2 = dim1 + h - 1
+        A = matrix(NA, nrow = h, ncol = 1)
+        dimnames(A) = list(dim1:dim2, "Factor 1")
+        for (i in 1:h) {
+          A[i,] = predicted.factors[i]
+        }
+      }
+      else {
+        dim1 = dim(x$fitted.data)[1]+1
+        dim2 = dim1+dim(predicted.factors)[1]-1
+        A = matrix(NA, nrow = dim(predicted.factors)[1], ncol = dim(predicted.factors)[2])
+        dimnames(A) = list(dim1:dim2, paste("Factor", 1:dim(predicted.factors)[2]))
+        for (i in 1:dim(A)[1]) {A[i,] = predicted.factors[i,]}}
+      predicted.factors = A
+    }
+  }
   return(predicted.factors)
 }
 
@@ -731,7 +758,7 @@ VAR.forecast = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
 #' d = dffm(d)
 #' dffm.predict(d)
 dffm.predict = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K = NULL){
-  if(class(x) != "dffm") stop('x must be class "dffm"')
+  if(class(x)[1] != "dffm") stop('x must be class "dffm"')
   if(criterion == TRUE & !is.null(p) | criterion == TRUE & !is.null(K)| criterion == TRUE & !is.null(K) & !is.null(p)){
     stop("please use either criterion or predetermined K and/or p")}
   if(criterion == TRUE){
@@ -739,8 +766,6 @@ dffm.predict = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     p = as.numeric(IC$IC.min[1])
     K = as.numeric(IC$IC.min[2])
   }
-  if(K > length(x$eigenvalues)) stop("K is greater then the number of possible components")
-  if(K < 0) stop("K is not allowed to be negative")
   if(class(x$fitted.data)[1] == "mts"){
     if(sum(is.na(x$fitted.data))>0){
       x$factorscores = ts_xts(x$factorscores)
@@ -755,6 +780,8 @@ dffm.predict = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
   if(criterion == FALSE & is.null(K)){K = length(x$eigenvalues)}
   if(criterion == FALSE & is.null(p)){p = 8}
   if(is.null(h)){h = 1}
+  if(K > length(x$eigenvalues)+2) stop("K is greater then the number of possible components")
+  if(K < 0) stop("K is not allowed to be negative")
   f.cast = VAR.forecast(x, h = h, AR = AR, p = p, K = K)
   temp = f.cast %*% t(x$loadingfunctions[,1:K])
   fitt = matrix(NA, ncol = dim(temp)[2], nrow = dim(temp)[1])
@@ -772,7 +799,8 @@ dffm.predict = function(x, AR = FALSE, criterion = FALSE, h = NULL, p = NULL, K 
     }
     if(class(x$fitted.data)[1] == "mts"){
       fitt = ts(fitt, start = tail(time(x$fitted.data),1) + 1/frequency(x$fitted.data), frequency = frequency(x$fitted.data))}
-    if(class(x$fitted.data)[1] != "mts"){rownames(fitt) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(fitt)[1])}}
+    if(class(x$fitted.data)[1] != "mts"){rownames(fitt) = (dim(x$fitted.data)[1]+1):(dim(x$fitted.data)[1]+dim(fitt)[1])}
+    f.cast = NULL}
   colnames(fitt) = x$basis$workgrid
   fitted.values = fitt
   output = list("predicted.values" = fitted.values, "predicted.factors" = f.cast)
