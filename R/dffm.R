@@ -103,3 +103,102 @@ dffm = function(fpcaobj, K = NULL, p = NULL, AR = FALSE){
   class(out) = "dffm"
   return(out)
 }
+
+#' print.dffm
+#'
+#' S3 print function for dffm objects.
+#'
+#' @param x An object of class "dffm".
+#'
+#' @return
+#' @export
+#'
+#' @examples
+print.dffm = function(x){
+  print(list(
+    "K" = x$K,
+    "p" = x$p,
+    "factors" = paste(paste("class:", class(x$factors)[1],";",dim(x$factors)[1],
+                            "rows,", dim(x$factors)[2], "cols")),
+    "factordynamics" = x$factordynamics,
+    "VARcoefficients" = paste(paste("class:", class(x$VARcoefficients)[1],";",dim(x$VARcoefficients)[1],
+                                    "rows,", dim(x$VARcoefficients)[2], "cols")),
+    "loadingfunctions.obsgrid" = paste(paste("class:", class(x$loadingfunctions.obsgrid)[1],";",dim(x$loadingfunctions.obsgrid)[1],
+                                             "rows,", dim(x$loadingfunctions.obsgrid)[2], "cols")),
+    "loadingfunctions.obsgrid" = paste(paste("class:", class(x$loadingfunctions.obsgrid)[1],";",dim(x$loadingfunctions.obsgrid)[1],
+                                             "rows,", dim(x$loadingfunctions.obsgrid)[2], "cols")),
+    "loadingfunctions.workgrid" = paste(paste("class:", class(x$loadingfunctions.workgrid)[1],";",dim(x$loadingfunctions.workgrid)[1],
+                                             "rows,", dim(x$loadingfunctions.workgrid)[2], "cols")),
+    "meanfunction.workgrid" = paste(paste("class:", class(x$meanfunction.workgrid)[1],";",dim(x$meanfunction.workgrid)[1],
+                                             "rows,", dim(x$meanfunction.workgrid)[2], "cols")),
+    "fittedcurve.obsgrid" = paste(paste("class:", class(x$fittedcurve.obsgrid)[1],";",dim(x$fittedcurve.obsgrid)[1],
+                                          "rows,", dim(x$fittedcurve.obsgrid)[2], "cols")),
+    "fittedcurve.workgrid" = paste(paste("class:", class(x$fittedcurve.workgrid)[1],";",dim(x$fittedcurve.workgrid)[1],
+                                          "rows,", dim(x$fittedcurve.workgrid)[2], "cols")),
+    "observationgrid" = x$observationgrid,
+    "workinggrid" = x$workinggrid,
+    "FPCA" = paste("class:", class(x$FPCA))
+  ), quote = FALSE)
+}
+
+#' predict.dffm
+#'
+#' S3 predict function for dffm objects.
+#'
+#' @param x An object of class "dffm".
+#' @param h Time ahead forecasts.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+predict.dffm = function(x, h = NULL){
+  if(is.null(h)) h = 1
+  output = dffm.forecast(dffmobj = x, h = h)
+  return(output)
+}
+
+#' plot.dffm
+#'
+#' S3 predict function for dffm objects.
+#'
+#' @param x An object of class "dffm".
+#' @param time Observation to be plotted.
+#' @param date.on Logical; if TRUE, date will be shown underneath plot. If FALSE, no date will be shown. FALSE is default.
+#' @param workgrid Logical; If TRUE, workgrid will be used. If FALSE observationgrid will be used. TRUE is default.
+#' @param ... Plot adjustment parameters left open.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot.dffm = function(x, time = NULL, date.on = FALSE, workgrid = TRUE, ...){
+  if(is.null(time)) time = 1
+  if(date.on == TRUE & class(x$fittedcurve.obsgrid)[1] != "mts") stop("'dffm' object has no time series 'fitted.data'")
+  if(workgrid == TRUE){
+    grid = as.numeric(x$workinggrid)
+    y = x$fittedcurve.workgrid[time,]
+  }else{
+    grid = as.numeric(x$observationgrid)
+    y = x$fittedcurve.obsgrid[time,]
+  }
+  if(class(x$fittedcurve.obsgrid)[1] == "mts" & date.on == TRUE){
+    plot(x = grid, y = y, type = "l",
+         sub = list(paste("from", zoo:: as.yearmon(time(x$fittedcurve.obsgrid))[time]), cex =.9), ...)
+  }
+  if(class(x$fittedcurve.obsgrid)[1] == "mts" & date.on == FALSE){
+    plot(x = grid, y = y, type = "l", ...)
+  }
+  if(class(x$fittedcurve.obsgrid)[1] != "mts"){
+    plot(x = grid, y = y, type = "l", ...)
+  }
+}
+
+
+
+
+
+
+
+
+

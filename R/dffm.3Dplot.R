@@ -4,8 +4,12 @@
 #' look up fpca.preprocess() or dffm().
 #'
 #' @param fpcaobj Has to be an object of class 'FPCAobj' or 'dffm'.
-#' @param domainlab ...
-#' @param outputlab ...
+#' @param domainlab ylab name of the plot.
+#' @param outputlab zlab name of the plot.
+#' @param rotate Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 35.
+#' NULL is default.
+#' @param cex.main Parameter to change the font size of the headline. If NULL cex.main will be set to 1.6.
+#' NULL is default.
 #' @param ... Option to change parameters in surf3D().
 #'
 #' @return
@@ -17,9 +21,11 @@
 #' d = dffm(JKV)
 #' d$FPCA$raw.data
 #' dffm.3Dplot(d)
-dffm.3Dplot = function(fpcaobj, domainlab=NULL, outputlab=NULL, ...){
-  if(class(fpcaobj) == "dffm") fpcaobj = fpcaobj$FPCA
-  if(class(fpcaobj) != "dffm" & class(fpcaobj) != "FPCAobj")stop("fpcaobj has to be an object of class 'FPCAobj' or 'dffm'")
+dffm.3Dplot = function(fpcaobj, domainlab=NULL, outputlab=NULL, rotate = NULL, cex.main = NULL, ...){
+  if(class(fpcaobj)[1] == "dffm") fpcaobj = fpcaobj$FPCA
+  if(class(fpcaobj)[1] != "dffm" & class(fpcaobj)[1] != "FPCAobj")stop("fpcaobj has to be an object of class 'FPCAobj' or 'dffm'")
+  if(is.null(rotate)) rotate = 35
+  if(is.null(cex.main)) cex.main = 1.6
   observationgrid = fpcaobj$observationgrid
   data = fpcaobj$raw.data
   Tdim <- dim(data)[1]
@@ -28,7 +34,7 @@ dffm.3Dplot = function(fpcaobj, domainlab=NULL, outputlab=NULL, ...){
                  y = t(replicate(Tdim, observationgrid)),
                  z = data,
                  bty="b2",
-                 theta=35,
+                 theta=rotate,
                  phi=12,
                  colvar = data,
                  col = NULL,
@@ -40,9 +46,7 @@ dffm.3Dplot = function(fpcaobj, domainlab=NULL, outputlab=NULL, ...){
                  ylab = domainlab,
                  zlab = outputlab,
                  ticktype = "detailed",
-                 cex.main=1.6,
-                 cex.lab=1,
-                 cex.axis=1,
+                 cex.main=cex.main,
                  expand = 0.6,
                  ...
   )

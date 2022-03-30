@@ -14,7 +14,7 @@ library(dffm)
 fed = load.fed()
 JKV = load.JKV()
 ## ##################################
-## Nelson−Siegel loading functions
+## Nelson-Siegel loading functions
 ## ##################################
 NSline <- matrix(nrow=360, ncol=3)
 for (i in 1:360){

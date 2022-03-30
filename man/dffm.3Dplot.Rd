@@ -4,14 +4,27 @@
 \alias{dffm.3Dplot}
 \title{dffm.3Dplot}
 \usage{
-dffm.3Dplot(fpcaobj, domainlab = NULL, outputlab = NULL, ...)
+dffm.3Dplot(
+  fpcaobj,
+  domainlab = NULL,
+  outputlab = NULL,
+  rotate = NULL,
+  cex.main = NULL,
+  ...
+)
 }
 \arguments{
 \item{fpcaobj}{Has to be an object of class 'FPCAobj' or 'dffm'.}
 
-\item{domainlab}{...}
+\item{domainlab}{ylab name of the plot.}
 
-\item{outputlab}{...}
+\item{outputlab}{zlab name of the plot.}
+
+\item{rotate}{Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 35.
+NULL is default.}
+
+\item{cex.main}{Parameter to change the font size of the headline. If NULL cex.main will be set to 1.6.
+NULL is default.}
 
 \item{...}{Option to change parameters in surf3D().}
 }

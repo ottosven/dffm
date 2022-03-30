@@ -4,7 +4,7 @@
 \alias{dffm.MSEplot}
 \title{dffm.MSEplot}
 \usage{
-dffm.MSEplot(criterion, kmax, pmax, ...)
+dffm.MSEplot(criterion, kmax, pmax, rotate = NULL, cex.main = NULL, ...)
 }
 \arguments{
 \item{criterion}{Has to be an object of class 'dffm', 'FPCAobj' or results of the dffm.criterion function.}
@@ -13,13 +13,19 @@ dffm.MSEplot(criterion, kmax, pmax, ...)
 
 \item{pmax}{A parameter specifying the lags used in the 3D plot.}
 
+\item{rotate}{Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 120.
+NULL is default.}
+
+\item{cex.main}{Parameter to change the font size of the headline. If NULL cex.main will be set to 1.2.
+NULL is default.}
+
 \item{...}{Option to change parameters in surf3D().}
 }
 \value{
 A 3D plot of the mse errors from the dffm.criterion function.
 }
 \description{
-A function which plots mean squared errors from the dffm.criterion in 3D. For more information about the
+A function which plots mean squared errors from the dffm.criterion function in 3D. For more information about the
 mse errors, see the dffm.criterion function.
 }
 \examples{

@@ -1,7 +1,7 @@
 ## ####################################################################
 ## ####################################################################
 ## Supplement for
-## "Dynamic Factor Model for Functional Time Series: 
+## "Dynamic Factor Model for Functional Time Series:
 ## Identification, Estimation, and Prediction"
 ## by Sven Otto and Nazarii Salish.
 ## This R-script allows to reproduce Table 2.
@@ -136,9 +136,8 @@ sim.criterion=function(T, type){
     }
     return(data)
   }
-  source("00_extrafunctions.R", print.eval = TRUE)
   data = gen.data(type = type, T)
-  out=dffm.criterion(fpca.preprocess(data), K.max=8, p.max=8)
+  out=dffm::dffm.criterion(dffm::fpca.preprocess(data), K.max=8, p.max=8)
   return(out[[1]])
 }
 ## ##################################

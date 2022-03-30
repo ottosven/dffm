@@ -1,6 +1,6 @@
 Package: dffm
 Type: Package
-Imports: stats, fda, fdapace
+Imports: stats, fda, fdapace, xts, tsbox, zoo
 Title: Dynamic Functional Factor Model
 Version: 0.0.0.9000
 Authors@R: 
@@ -13,3 +13,5 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
+Depends: 
+    R (>= 2.10)

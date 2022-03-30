@@ -27,5 +27,5 @@ fed.criterion = dffm.criterion(fed.fpca)
 ## 3D plots
 ## ##################################
 dffm.MSEplot(JKV.criterion, kmax=8, pmax=8, zlim = range(na.omit(JKV.criterion$MSE.matrix[1:8,1:8])) + c(0,-0.1))
-dffm.MSEplot(fed.criterion, kmax=8, pmax=8, zlim = range(na.omit(fed.criterion$MSE.matrix[1:8,1:8])) + c(0,-0.1))
+dffm.MSEplot(fed.criterion, kmax=8, pmax=8, zlim = range(na.omit(fed.criterion$MSE.matrix[1:8,1:8])) + c(0,-0.125))
 

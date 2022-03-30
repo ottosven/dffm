@@ -31,7 +31,6 @@ dffm.insampleforecasts = function(dffmobj){
   return(fittedcurve.obsgrid)
 }
 insample.prederror = function(data){
-  source("00_extrafunctions.R", print.eval = TRUE)
   prederrors = list()
   for(j in 1:12) prederrors[[j]] = matrix(nrow = dim(data)[1]-1, ncol = dim(data)[2])
   data.fpca = fpca.preprocess(data)
@@ -80,7 +79,6 @@ DNS.insample = function(data, p=1, AR=FALSE){
 ## Out of sample forecast functions
 ## ##################################
 outofsample.prederror = function(data, h=1, traininglength = 120){
-  source("00_extrafunctions.R", print.eval = TRUE)
   trainingendperiods = (traininglength):(dim(data)[1]-h)
   evalperiods = trainingendperiods + h
   prederrors = list()
