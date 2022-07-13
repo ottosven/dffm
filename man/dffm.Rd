@@ -11,22 +11,22 @@ dffm(fpcaobj, K = NULL, p = NULL, AR = FALSE)
 
 \item{K}{A parameter which specifies the number of factors be used. If K is NULL, K will be 4. NULL is default.}
 
-\item{p}{A parameter which specifies the number of lags will be used for the factor dynamics.}
+\item{p}{A parameter which specifies the number of lags to be used for the factor dynamics.}
 
-\item{AR}{Will determine if factor dynamics will be based on vector autoregressive models or autoregressive models.
-If AR is FALSE computations for factor dynamics will be based on vector autoregressive models. FALSE is default.}
+\item{AR}{Specifies the dynamic time series process for the factors. If AR is TRUE, individual AR processes are estimated.
+If AR is FALSE, a vector autoregressive model is used. FALSE is default.}
 }
 \value{
-dffm will return an object of class 'dffm' with:
+dffm returns an object of class 'dffm' with:
 \item{K}{Used number of factors in the analysis.}
 \item{p}{Used number of lags used for the factor dynamics.}
 \item{fpcascores}{A matrix/ts-matrix of the computed factorscores.}
 \item{factordynamics}{Used factor dynamics method.}
-\item{VARcoefficients}{A matrix of the computed factor dynamics.}
+\item{VARcoefficients}{A matrix containing the estimated VAR coefficient matrices.}
 \item{loadingfunctions.obsgrid}{A matrix containing the estimated loading functions, which are evaluated on the observationgrid.}
-\item{meanfunction.obsgrid}{A vector containing the estimated mean function, which is evalauted on the observationgrid.}
+\item{meanfunction.obsgrid}{A vector containing the estimated intercept function, which is evalauted on the observationgrid.}
 \item{loadingfunctions.workgrid}{A matrix containing the estimated loading functions, which are evaluated on the observationgrid.}
-\item{meanfunction.workgrid}{A vector containing the estimated mean function, which is evalauted on the workinggrid.}
+\item{meanfunction.workgrid}{A vector containing the estimated intercept function, which is evalauted on the workinggrid.}
 \item{fittedcurve.obsgrid}{A matrix/ts-matrix of the fitted curves evaluated on the observationgrid.}
 \item{fittedcurve.workgrid}{A matrix/ts-matrix of the fitted curves evaluated on the workinggrid.}
 \item{observationgrid}{Used observationgrid in the analysis.}
@@ -34,15 +34,14 @@ dffm will return an object of class 'dffm' with:
 \item{FPCA}{Object of class 'FPCAobj' computed from the 'fpca.preprocess' function. For more details see 'fpca.preprocess' function.}
 }
 \description{
-dffm is a function which performs a complete functional data analysis on a multivariate time series.
+dffm is a function which estimates the functional factor model of Otto and Salish (2022).
 }
 \examples{
-# with object of class 'FPCAobj'
+# using object of class 'FPCAobj'
 fed = load.fed()
-fpca = fpca.preprocess(data = fed, method = "splines")
+fpca = fpca.preprocess(data = fed)
 dffm(fpca)
-# with raw data
-fed = load.fed()
+# using raw data
 dffm(fed, K = 3, p = 2, AR = FALSE)
 }
 \references{

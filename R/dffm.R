@@ -1,24 +1,28 @@
+#' @import stats
+#' @import utils
+NULL
+
 #' dffm
 #'
-#' dffm is a function which performs a complete functional data analysis on a multivariate time series.
+#' dffm is a function which estimates the functional factor model of Otto and Salish (2022).
 #'
 #' @param fpcaobj A multivariate time series of class 'ts' or 'data.frame' or an object of the class 'FPCAobj'.
 #' @param K A parameter which specifies the number of factors be used. If K is NULL, K will be 4. NULL is default.
-#' @param p A parameter which specifies the number of lags will be used for the factor dynamics.
-#' @param AR Will determine if factor dynamics will be based on vector autoregressive models or autoregressive models.
-#' If AR is FALSE computations for factor dynamics will be based on vector autoregressive models. FALSE is default.
+#' @param p A parameter which specifies the number of lags to be used for the factor dynamics.
+#' @param AR Specifies the dynamic time series process for the factors. If AR is TRUE, individual AR processes are estimated.
+#' If AR is FALSE, a vector autoregressive model is used. FALSE is default.
 #'
 #' @return
-#' dffm will return an object of class 'dffm' with:
+#' dffm returns an object of class 'dffm' with:
 #' \item{K}{Used number of factors in the analysis.}
 #' \item{p}{Used number of lags used for the factor dynamics.}
 #' \item{fpcascores}{A matrix/ts-matrix of the computed factorscores.}
 #' \item{factordynamics}{Used factor dynamics method.}
-#' \item{VARcoefficients}{A matrix of the computed factor dynamics.}
+#' \item{VARcoefficients}{A matrix containing the estimated VAR coefficient matrices.}
 #' \item{loadingfunctions.obsgrid}{A matrix containing the estimated loading functions, which are evaluated on the observationgrid.}
-#' \item{meanfunction.obsgrid}{A vector containing the estimated mean function, which is evalauted on the observationgrid.}
+#' \item{meanfunction.obsgrid}{A vector containing the estimated intercept function, which is evalauted on the observationgrid.}
 #' \item{loadingfunctions.workgrid}{A matrix containing the estimated loading functions, which are evaluated on the observationgrid.}
-#' \item{meanfunction.workgrid}{A vector containing the estimated mean function, which is evalauted on the workinggrid.}
+#' \item{meanfunction.workgrid}{A vector containing the estimated intercept function, which is evalauted on the workinggrid.}
 #' \item{fittedcurve.obsgrid}{A matrix/ts-matrix of the fitted curves evaluated on the observationgrid.}
 #' \item{fittedcurve.workgrid}{A matrix/ts-matrix of the fitted curves evaluated on the workinggrid.}
 #' \item{observationgrid}{Used observationgrid in the analysis.}
@@ -32,12 +36,11 @@
 #' * Yao, F., Mueller, H.-G., and Wang, J.-L. (2005). Functional data analysis for sparse longitudinal
 #' data. Journal of the American Statistical Association, 100:577-590.
 #' @examples
-#' # with object of class 'FPCAobj'
+#' # using object of class 'FPCAobj'
 #' fed = load.fed()
-#' fpca = fpca.preprocess(data = fed, method = "splines")
+#' fpca = fpca.preprocess(data = fed)
 #' dffm(fpca)
-#' # with raw data
-#' fed = load.fed()
+#' # using raw data
 #' dffm(fed, K = 3, p = 2, AR = FALSE)
 dffm = function(fpcaobj, K = NULL, p = NULL, AR = FALSE){
   # checking data
@@ -109,12 +112,10 @@ dffm = function(fpcaobj, K = NULL, p = NULL, AR = FALSE){
 #' S3 print function for dffm objects.
 #'
 #' @param x An object of class "dffm".
+#' @param ... further parameters.
 #'
-#' @return
 #' @export
-#'
-#' @examples
-print.dffm = function(x){
+print.dffm = function(x, ...){
   print(list(
     "K" = x$K,
     "p" = x$p,
@@ -145,16 +146,15 @@ print.dffm = function(x){
 #'
 #' S3 predict function for dffm objects.
 #'
-#' @param x An object of class "dffm".
+#' @param object An object of class "dffm".
+#' @param ... further parameters.
 #' @param h Time ahead forecasts.
 #'
-#' @return
+#' @rdname predict.dffm
 #' @export
-#'
-#' @examples
-predict.dffm = function(x, h = NULL){
+predict.dffm = function(object, ..., h = NULL){
   if(is.null(h)) h = 1
-  output = dffm.forecast(dffmobj = x, h = h)
+  output = dffm.forecast(dffmobj = object, h = h)
   return(output)
 }
 
@@ -168,10 +168,7 @@ predict.dffm = function(x, h = NULL){
 #' @param workgrid Logical; If TRUE, workgrid will be used. If FALSE observationgrid will be used. TRUE is default.
 #' @param ... Plot adjustment parameters left open.
 #'
-#' @return
 #' @export
-#'
-#' @examples
 plot.dffm = function(x, time = NULL, date.on = FALSE, workgrid = TRUE, ...){
   if(is.null(time)) time = 1
   if(date.on == TRUE & class(x$fittedcurve.obsgrid)[1] != "mts") stop("'dffm' object has no time series 'fitted.data'")

@@ -14,7 +14,7 @@ dffm.3Dplot(
 )
 }
 \arguments{
-\item{fpcaobj}{Has to be an object of class 'FPCAobj' or 'dffm'.}
+\item{fpcaobj}{Must be an object of class 'FPCAobj' or 'dffm'.}
 
 \item{domainlab}{ylab name of the plot.}
 
@@ -32,8 +32,8 @@ NULL is default.}
 3D plot of data used in the functions 'fpca.preprocess' or 'dffm'.
 }
 \description{
-A function which 3D-plots the data used in the functions 'fpca.preprocess' or 'dffm'. For more details
-look up fpca.preprocess() or dffm().
+A function that produces a 3D-plot of the data used in the functions 'fpca.preprocess' or 'dffm'. For more details,
+see ?fpca.preprocess or ?dffm.
 }
 \examples{
 JKV = load.JKV()

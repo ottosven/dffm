@@ -4,13 +4,12 @@
 \alias{print.dffm}
 \title{print.dffm}
 \usage{
-\method{print}{dffm}(x)
+\method{print}{dffm}(x, ...)
 }
 \arguments{
 \item{x}{An object of class "dffm".}
-}
-\value{
 
+\item{...}{further parameters.}
 }
 \description{
 S3 print function for dffm objects.

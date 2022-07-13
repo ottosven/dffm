@@ -9,27 +9,26 @@ dffm.criterion(fpcaobj, K.max = NULL, p.max = NULL)
 \arguments{
 \item{fpcaobj}{An object of class 'FPCAobj' or 'dffm'.}
 
-\item{K.max}{A predetermined maximum of K for the criterion. If NULL K.max will be highest possible K from given 'FPCAobj'.
+\item{K.max}{The maximum number of factors for the criterion. If NULL K.max will be highest possible number from the given 'FPCAobj'.
 NULL is default.}
 
-\item{p.max}{A predetermined maximum of p for the criterion. If NULL p.max will be base on Schwert rule of thumb. NULL is default.}
+\item{p.max}{The maximum number of lags for the criterion. If NULL p.max will be based on Schwert's rule of thumb. NULL is default.}
 }
 \value{
 A list containing the following:
-\item{IC.min}{Computed optimal number of K and p, based on the BIC, HQC and fFPE methods.}
-\item{MSE.matrix}{A matrix containing all computed mse combinations.}
+\item{IC.min}{Estimated number of factors K and lags p, based on the BIC, HQC and fFPE criterion.}
+\item{MSE.matrix}{A matrix containing all computed MSE combinations.}
 }
 \description{
-Computes an optimal number of factors K and an optimal number of lags p for functional data analysis or prediction, based on the
-information criterions written in Otto and Salish (2021).
+Estimates the number of factors K and lags p for the functional factor model using the
+information criteria proposed in Otto and Salish (2021).
 }
 \examples{
-# with object of class 'FPCAobj'
+# using object of class 'FPCAobj'
 fed = load.fed()
-fpca = fpca.preprocess(data = fed, method = "splines")
+fpca = fpca.preprocess(data = fed)
 dffm.criterion(fpca)
-# with object of class 'dffm'
-fed = load.fed()
+# using object of class 'dffm'
 d = dffm(fed)
 dffm.criterion(d)
 }

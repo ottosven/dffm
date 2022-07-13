@@ -8,47 +8,50 @@ fpca.preprocess(
   data,
   workinggrid = NULL,
   observationgrid = NULL,
-  method = c("splines", "pace")
+  method = c("smoothsplines", "pace", "naturalsplines")
 )
 }
 \arguments{
 \item{data}{A multivariate time series of class 'ts' or 'data.frame'.}
 
 \item{workinggrid}{An optional list, sequence or numeric vector which contains a predetermined workinggrid for the analysis.
-If NULL a sequence, beginning from the smallest to the highest observed observation will be used. NULL is default.}
+If NULL, the sequence with gridsize 1 is used, ranging from the smallest to the highest observed domain point. NULL is default.}
 
 \item{observationgrid}{An optional list, sequence or numeric vector which contains a predetermined observationgrid for the
-observations. If NULL the column names will be used. NULL is default.}
+observations. If NULL, the column names will be used. NULL is default.}
 
-\item{method}{Preprocessing method to be used. If 'splines' smoothing splines from the package 'fda' are used (see Kokoszka
-and Reimherr, 2017). If 'pace' the PACE method from the package 'fdapace' is applied (see Yao et al., 2005). In case of
-irregularly observed functional data please set to 'pace'. 'splines' is default.}
+\item{method}{Preprocessing method to be used. If 'smoothsplines', smoothing splines from the package 'fda' are used (see Kokoszka
+and Reimherr, 2017). If 'pace', the PACE method from the package 'fdapace' is applied (see Yao et al., 2005).
+If 'natralsplines', natural spline interpolation is used.
+In case of irregularly observed functional data please set to 'pace' or 'naturalsplines'.
+'smoothsplines' is default.}
 }
 \value{
-fpca.preprocess will return an object of class 'FPCAobj' with:
+fpca.preprocess returns an object of class 'FPCAobj' with:
 \item{eigenvalues}{A vector containing the eigenvalues of the sample covariance operator.}
-\item{fpcascores}{A matrix/ts-matrix of the computed factorscores.}
-\item{eigenfunctions.obsgrid}{A matrix containing the estimated loading functions, which are evaluated on the workinggrid.}
-\item{meanfunction.obsgrid}{A vector containing the estimated mean function, which is evalauted on the observationgrid.}
-\item{eigenfunctions.workgrid}{A matrix containing the estimated loading functions, which are evaluated on the observationgrid.}
-\item{meanfunction.workgrid}{A vector containing the estimated mean function, which is evalauted on the workinggrid.}
-\item{raw.data}{Ouput of the data used in the analysis.}
-\item{observationgrid}{Used observationgrid in the analysis.}
-\item{workinggrid}{Used workinggrid in the analysis.}
-\item{method}{Used method in the analysis.}
+\item{fpcascores}{A matrix/ts-matrix of the computed FPCA-scores/projection coefficients.}
+\item{eigenfunctions.obsgrid}{A matrix containing the orthonormal eigenfunctions of the sample covariance operator, which are evaluated on the workinggrid.}
+\item{meanfunction.obsgrid}{A vector containing the sample mean function, which is evalauted on the observationgrid.}
+\item{eigenfunctions.workgrid}{A matrix containing the orthonormal eigenfunctions of the sample covariance operator, which are evaluated on the observationgrid.}
+\item{meanfunction.workgrid}{A vector containing the sample mean function, which is evalauted on the workinggrid.}
+\item{raw.data}{The raw data used for the analysis.}
+\item{observationgrid}{Observationgrid of the raw data used for the analysis.}
+\item{workinggrid}{The dense workinggrid of the analysis.}
+\item{dense.fts}{The dense representation of the functional time series using the empirical Karhunen-Loeve expansion on the workinggrid.}
+\item{method}{Preprocessing method to obtain the dense functional time series.}
 }
 \description{
-fpca.preprocess is used to prepare a time series or data frame data object especially for the dffm function. For more details
-see dffm. The output objects are based on the fda package or on the fdapace package.
+fpca.preprocess converts discrete point observations of a functional time series into functional time series evaluated on a dense
+workinggrid. It also computes its eigendecomposition and empirical Karhunen-Loeve expansion. The data is preprocessed using
+either natural splines, smoothing splines, or the PACE-method.
 }
 \examples{
-# normal workinggrid
+# standard workinggrid
 fed = load.fed()
-fpca.preprocess(data = fed, method = "splines")
-# changed workinggrid
-fed = load.fed()
+fpca.preprocess(data = fed)
+# A tighter workinggrid
 wg = (2:720)/2
-fpca.preprocess(fed, workinggrid = wg, method = "splines")
+fpca.preprocess(fed, workinggrid = wg)
 }
 \references{
 \itemize{

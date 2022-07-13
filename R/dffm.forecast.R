@@ -1,6 +1,6 @@
 #' dffm.forecast
 #'
-#' A function to predict h month ahead curves from a 'dffm' object.
+#' A function that computes the MSE-optimal h-step adead curve predictor for a given 'dffm' object.
 #'
 #' @param dffmobj An object of class 'dffm'.
 #' @param h A parameter determining the forecast horizon. If h is NULL, h will be 1. NULL is default.

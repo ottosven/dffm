@@ -18,7 +18,7 @@ A list containing the following:
 \item{predcurves.workgrid}{A matrix or ts-matrix containing the predicted curves evaluated on the workinggrid.}
 }
 \description{
-A function to predict h month ahead curves from a 'dffm' object.
+A function that computes the MSE-optimal h-step adead curve predictor for a given 'dffm' object.
 }
 \examples{
 fed = load.fed()

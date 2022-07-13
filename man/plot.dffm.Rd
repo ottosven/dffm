@@ -17,9 +17,6 @@
 
 \item{...}{Plot adjustment parameters left open.}
 }
-\value{
-
-}
 \description{
 S3 predict function for dffm objects.
 }

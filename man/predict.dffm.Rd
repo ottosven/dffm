@@ -4,15 +4,14 @@
 \alias{predict.dffm}
 \title{predict.dffm}
 \usage{
-\method{predict}{dffm}(x, h = NULL)
+\method{predict}{dffm}(object, ..., h = NULL)
 }
 \arguments{
-\item{x}{An object of class "dffm".}
+\item{object}{An object of class "dffm".}
+
+\item{...}{further parameters.}
 
 \item{h}{Time ahead forecasts.}
-}
-\value{
-
 }
 \description{
 S3 predict function for dffm objects.

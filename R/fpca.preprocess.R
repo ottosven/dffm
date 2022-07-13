@@ -1,29 +1,33 @@
 #' fpca.preprocess
 #'
-#' fpca.preprocess is used to prepare a time series or data frame data object especially for the dffm function. For more details
-#' see dffm. The output objects are based on the fda package or on the fdapace package.
+#' fpca.preprocess converts discrete point observations of a functional time series into functional time series evaluated on a dense
+#' workinggrid. It also computes its eigendecomposition and empirical Karhunen-Loeve expansion. The data is preprocessed using
+#' either natural splines, smoothing splines, or the PACE-method.
 #'
 #' @param data A multivariate time series of class 'ts' or 'data.frame'.
 #' @param workinggrid An optional list, sequence or numeric vector which contains a predetermined workinggrid for the analysis.
-#' If NULL a sequence, beginning from the smallest to the highest observed observation will be used. NULL is default.
+#' If NULL, the sequence with gridsize 1 is used, ranging from the smallest to the highest observed domain point. NULL is default.
 #' @param observationgrid An optional list, sequence or numeric vector which contains a predetermined observationgrid for the
-#' observations. If NULL the column names will be used. NULL is default.
-#' @param method Preprocessing method to be used. If 'splines' smoothing splines from the package 'fda' are used (see Kokoszka
-#' and Reimherr, 2017). If 'pace' the PACE method from the package 'fdapace' is applied (see Yao et al., 2005). In case of
-#' irregularly observed functional data please set to 'pace'. 'splines' is default.
+#' observations. If NULL, the column names will be used. NULL is default.
+#' @param method Preprocessing method to be used. If 'smoothsplines', smoothing splines from the package 'fda' are used (see Kokoszka
+#' and Reimherr, 2017). If 'pace', the PACE method from the package 'fdapace' is applied (see Yao et al., 2005).
+#' If 'natralsplines', natural spline interpolation is used.
+#' In case of irregularly observed functional data please set to 'pace' or 'naturalsplines'.
+#' 'smoothsplines' is default.
 #'
 #' @return
-#' fpca.preprocess will return an object of class 'FPCAobj' with:
+#' fpca.preprocess returns an object of class 'FPCAobj' with:
 #' \item{eigenvalues}{A vector containing the eigenvalues of the sample covariance operator.}
-#' \item{fpcascores}{A matrix/ts-matrix of the computed factorscores.}
-#' \item{eigenfunctions.obsgrid}{A matrix containing the estimated loading functions, which are evaluated on the workinggrid.}
-#' \item{meanfunction.obsgrid}{A vector containing the estimated mean function, which is evalauted on the observationgrid.}
-#' \item{eigenfunctions.workgrid}{A matrix containing the estimated loading functions, which are evaluated on the observationgrid.}
-#' \item{meanfunction.workgrid}{A vector containing the estimated mean function, which is evalauted on the workinggrid.}
-#' \item{raw.data}{Ouput of the data used in the analysis.}
-#' \item{observationgrid}{Used observationgrid in the analysis.}
-#' \item{workinggrid}{Used workinggrid in the analysis.}
-#' \item{method}{Used method in the analysis.}
+#' \item{fpcascores}{A matrix/ts-matrix of the computed FPCA-scores/projection coefficients.}
+#' \item{eigenfunctions.obsgrid}{A matrix containing the orthonormal eigenfunctions of the sample covariance operator, which are evaluated on the workinggrid.}
+#' \item{meanfunction.obsgrid}{A vector containing the sample mean function, which is evalauted on the observationgrid.}
+#' \item{eigenfunctions.workgrid}{A matrix containing the orthonormal eigenfunctions of the sample covariance operator, which are evaluated on the observationgrid.}
+#' \item{meanfunction.workgrid}{A vector containing the sample mean function, which is evalauted on the workinggrid.}
+#' \item{raw.data}{The raw data used for the analysis.}
+#' \item{observationgrid}{Observationgrid of the raw data used for the analysis.}
+#' \item{workinggrid}{The dense workinggrid of the analysis.}
+#' \item{dense.fts}{The dense representation of the functional time series using the empirical Karhunen-Loeve expansion on the workinggrid.}
+#' \item{method}{Preprocessing method to obtain the dense functional time series.}
 #'
 #' @export
 #' @references
@@ -32,14 +36,13 @@
 #' * Yao, F., Mueller, H.-G., and Wang, J.-L. (2005). Functional data analysis for sparse longitudinal
 #' data. Journal of the American Statistical Association, 100:577-590.
 #' @examples
-#' # normal workinggrid
+#' # standard workinggrid
 #' fed = load.fed()
-#' fpca.preprocess(data = fed, method = "splines")
-#' # changed workinggrid
-#' fed = load.fed()
+#' fpca.preprocess(data = fed)
+#' # A tighter workinggrid
 #' wg = (2:720)/2
-#' fpca.preprocess(fed, workinggrid = wg, method = "splines")
-fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, method = c("splines", "pace")){
+#' fpca.preprocess(fed, workinggrid = wg)
+fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, method = c("smoothsplines", "pace", "naturalsplines")){
   ## before analysis
   # checking data
   if(missing(data)) stop("please provide valid data. For more details see 'data' in the help file")
@@ -55,8 +58,30 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
   if(is.null(workinggrid)) workinggrid = head(observationgrid,1):tail(observationgrid,1)
   workinggrid.unit = (workinggrid-head(workinggrid,1))/(tail(workinggrid,1) - head(workinggrid,1))
   ## analysis
-  # splines
-  if(method == "splines"){
+  # naturalsplines
+  if(method == "naturalsplines"){
+    nsfit = ts(matrix(nrow = dim(data)[1], ncol = length(workinggrid)), start=time(data)[1], frequency = frequency(data))
+    colnames(nsfit)=workinggrid
+    for(i in 1:dim(data)[1]){
+      thisobsgrid = observationgrid[!is.na(data[i,])]
+      nsbasis = splines::ns(thisobsgrid, knots=thisobsgrid[-length(thisobsgrid)], Boundary.knots=c(thisobsgrid[1],thisobsgrid[length(thisobsgrid)]))
+      coef = lm(na.omit(data[i,]) ~ nsbasis - 1)$coefficients
+      densebasis = splines::ns(workinggrid, knots=thisobsgrid[-length(thisobsgrid)], Boundary.knots=c(thisobsgrid[1],thisobsgrid[length(thisobsgrid)]))
+      nsfit[i,] = densebasis %*% coef
+    }
+    nsfit
+    ## FPCA
+    pca = prcomp(nsfit)
+    meanfunction.workgrid = pca$center
+    eigenfunctions.workgrid = pca$rotation
+    fpcascores = scale(nsfit, center=TRUE, scale=FALSE) %*% eigenfunctions.workgrid
+    if(is.ts(data)) fpcascores = ts(fpcascores, start = head(time(data),1), frequency = frequency(data))
+    eigenvalues = pca$sdev^2
+    eigenfunctions.obsgrid = eigenfunctions.workgrid[match(observationgrid, workinggrid),]
+    meanfunction.obsgrid = meanfunction.workgrid[match(observationgrid, workinggrid)]
+  }
+  # smoothingsplines
+  if(method == "smoothsplines"){
     splinebasis = fda::create.bspline.basis(rangeval=c(0,1), nbasis= 4 + length(observationgrid) - 2, norder=4, breaks=observationgrid.unit)
     FdPar.aux = fda::fdPar(fdobj = splinebasis)
     get.meangcv = function(lamb) (mean(fda::lambda2gcv(log10lambda = lamb, argvals = observationgrid.unit, y=t(data), fdParobj = FdPar.aux)))
@@ -104,6 +129,10 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
     meanfunction.workgrid = as.matrix(meanfunction.workgrid)
     dimnames(meanfunction.workgrid) = list(workinggrid, "mean")
   }
+
+  dense.fts = fpcascores %*% t(eigenfunctions.workgrid) + matrix(rep(meanfunction.workgrid, dim(fpcascores)[1]), nrow = dim(fpcascores)[1], byrow=TRUE)
+  if(is.ts(data)) dense.fts = ts(dense.fts, start = head(time(data),1), frequency = frequency(data))
+
   ## output
   out=list(
     "eigenvalues" = eigenvalues,
@@ -115,6 +144,7 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
     "raw.data" = data,
     "observationgrid" = observationgrid,
     "workinggrid" = workinggrid,
+    "dense.fts" = dense.fts,
     "method" = method
   )
   class(out) = "FPCAobj"

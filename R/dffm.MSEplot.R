@@ -1,11 +1,11 @@
 #' dffm.MSEplot
 #'
-#' A function which plots mean squared errors from the dffm.criterion function in 3D. For more information about the
-#' mse errors, see the dffm.criterion function.
+#' A function that produces a 3D-plot of the mean squared errors from the dffm.criterion function. For more information about the
+#' mse, see the dffm.criterion function.
 #'
-#' @param criterion Has to be an object of class 'dffm', 'FPCAobj' or results of the dffm.criterion function.
-#' @param kmax A parameter specifying the factors used in the 3D plot.
-#' @param pmax A parameter specifying the lags used in the 3D plot.
+#' @param criterion Must be an object of class 'dffm', 'FPCAobj' or an output of the dffm.criterion function.
+#' @param kmax A parameter specifying the maximum number of factors used in the 3D plot.
+#' @param pmax A parameter specifying the maximum number lags used in the 3D plot.
 #' @param rotate Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 120.
 #' NULL is default.
 #' @param cex.main Parameter to change the font size of the headline. If NULL cex.main will be set to 1.2.
@@ -19,10 +19,9 @@
 #' @examples
 #' # with dffm.criterion
 #' JKV = load.JKV()
-#' fpca = fpca.preprocess(data = JKV, method = "splines")
+#' fpca = fpca.preprocess(data = JKV)
 #' dffm.MSEplot(dffm.criterion(fpca, p.max = 8), kmax = 15, pmax = 8)
 #' # with FPCAobj
-#' fpca = fpca.preprocess(data = JKV, method = "splines")
 #' dffm.MSEplot(fpca, kmax = 12, pmax = 10)
 dffm.MSEplot = function(criterion, kmax, pmax, rotate = NULL, cex.main = NULL, ...){
   if(!"MSE.matrix" %in% names(criterion) & class(criterion)[1] == "dffm" | !"MSE.matrix" %in% names(criterion) & class(criterion)[1] == "FPCAobj"){

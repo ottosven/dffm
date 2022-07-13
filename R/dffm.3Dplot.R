@@ -1,9 +1,9 @@
 #' dffm.3Dplot
 #'
-#' A function which 3D-plots the data used in the functions 'fpca.preprocess' or 'dffm'. For more details
-#' look up fpca.preprocess() or dffm().
+#' A function that produces a 3D-plot of the data used in the functions 'fpca.preprocess' or 'dffm'. For more details,
+#' see ?fpca.preprocess or ?dffm.
 #'
-#' @param fpcaobj Has to be an object of class 'FPCAobj' or 'dffm'.
+#' @param fpcaobj Must be an object of class 'FPCAobj' or 'dffm'.
 #' @param domainlab ylab name of the plot.
 #' @param outputlab zlab name of the plot.
 #' @param rotate Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 35.
