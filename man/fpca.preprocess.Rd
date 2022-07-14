@@ -15,7 +15,7 @@ fpca.preprocess(
 \item{data}{A multivariate time series of class 'ts' or 'data.frame'.}
 
 \item{workinggrid}{An optional list, sequence or numeric vector which contains a predetermined workinggrid for the analysis.
-If NULL, the sequence with gridsize 1 is used, ranging from the smallest to the highest observed domain point. NULL is default.}
+If NULL, an equidistant workinggrid is used with gridsize equal to the minimum difference in the observationgrid. NULL is default.}
 
 \item{observationgrid}{An optional list, sequence or numeric vector which contains a predetermined observationgrid for the
 observations. If NULL, the column names will be used. NULL is default.}
