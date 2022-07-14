@@ -53,9 +53,10 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
   if(is.null(observationgrid))  observationgrid = as.numeric(colnames(data))
   if(length(observationgrid) != ncol(data)) stop('please specify a valid observationgrid')
   if(is.na(as.numeric(observationgrid))[1])stop("column names have to be numbers")
+  if(!all(diff(observationgrid)>0))stop("observationgrid must hyve strictly increasing entries")
   observationgrid.unit = (observationgrid-head(observationgrid,1))/(tail(observationgrid,1) - head(observationgrid,1))
-  # checking workinggrid
-  if(is.null(workinggrid)) workinggrid = head(observationgrid,1):tail(observationgrid,1)
+  # define equidistant workinggrid based on minimum difference in the observationgrid
+  if(is.null(workinggrid)) workinggrid = seq(observationgrid[1], observationgrid[length(observationgrid)], min(diff(observationgrid)))
   workinggrid.unit = (workinggrid-head(workinggrid,1))/(tail(workinggrid,1) - head(workinggrid,1))
   ## analysis
   # naturalsplines
@@ -69,14 +70,20 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
       densebasis = splines::ns(workinggrid, knots=thisobsgrid[-length(thisobsgrid)], Boundary.knots=c(thisobsgrid[1],thisobsgrid[length(thisobsgrid)]))
       nsfit[i,] = densebasis %*% coef
     }
-    nsfit
     ## FPCA
     pca = prcomp(nsfit)
-    meanfunction.workgrid = pca$center
-    eigenfunctions.workgrid = pca$rotation
-    fpcascores = scale(nsfit, center=TRUE, scale=FALSE) %*% eigenfunctions.workgrid
+    ## Norms of eigenfunctions are approximated on the workinggrid using the trapezoidal rule for numerical intergation
+    ## eigenfunctions are normalized and corresponding scores defined accordingly
+    L2norm = function(z) pracma::trapz(workinggrid, z^2)
+    norm.eigenf = apply(pca$rotation, 2, L2norm)
+    sig.eigenf=sign(pca$rotation[1,])
+    sig.eigenf[which(sig.eigenf==0)]=1
+    eigenfunctions.workgrid = t(c(sig.eigenf/sqrt(norm.eigenf)) * t(pca$rotation))
+    fpcascores = t(c(sig.eigenf*sqrt(norm.eigenf)) * t(pca$x))
     if(is.ts(data)) fpcascores = ts(fpcascores, start = head(time(data),1), frequency = frequency(data))
-    eigenvalues = pca$sdev^2
+    eigenvalues = norm.eigenf*pca$sdev^2
+    meanfunction.workgrid = pca$center
+    ##
     eigenfunctions.obsgrid = eigenfunctions.workgrid[match(observationgrid, workinggrid),]
     meanfunction.obsgrid = meanfunction.workgrid[match(observationgrid, workinggrid)]
   }
