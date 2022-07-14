@@ -1,6 +1,6 @@
 Package: dffm
 Type: Package
-Imports: stats, fda, fdapace, xts, tsbox, zoo, plot3D
+Imports: stats, fda, fdapace, xts, tsbox, zoo, plot3D, pracma
 Title: Dynamic Functional Factor Model
 Version: 0.0.0.9000
 Authors@R: 
