@@ -66,7 +66,7 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
     for(i in 1:dim(data)[1]){
       thisobsgrid = observationgrid[!is.na(data[i,])]
       nsbasis = splines::ns(thisobsgrid, knots=thisobsgrid[-length(thisobsgrid)], Boundary.knots=c(thisobsgrid[1],thisobsgrid[length(thisobsgrid)]))
-      coef = lm(na.omit(data[i,]) ~ nsbasis - 1)$coefficients
+      coef = lm(na.omit(as.matrix(data)[i,]) ~ nsbasis - 1)$coefficients
       densebasis = splines::ns(workinggrid, knots=thisobsgrid[-length(thisobsgrid)], Boundary.knots=c(thisobsgrid[1],thisobsgrid[length(thisobsgrid)]))
       nsfit[i,] = densebasis %*% coef
     }
