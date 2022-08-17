@@ -1,8 +1,7 @@
 ## ####################################################################
 ## ####################################################################
 ## Supplement for
-## "Dynamic Factor Model for Functional Time Series:
-## Identification, Estimation, and Prediction"
+## "Approximate Factor Models for Functional Time Series"
 ## by Sven Otto and Nazarii Salish.
 ## This R-script allows to reproduce Table 2.
 ## ####################################################################
@@ -33,10 +32,14 @@ set.seed(42)
 snow::clusterSetupRNG(cl)
 ## ##################################
 ## Setup (for running on local machine)
+## Select i=1 for T=100, i=2 for T=200, i=3 for T=500
+## Select type=1 for M1, type=2 for M2, etc.
+## MC are the number of Monte Carlo repetitions
+## To reproduce the setting in the paper, set MC=100000 (Note this will take a while)
 ## ##################################
-if(is.na(i)) i=1 # i=1 for T=100, i=2 for T=200, i=3 for T=500
-if(is.na(type)) type = 1 # type=1 for M1, type=2 for M2, etc.
-MC=10 # number of Monte Carlo repetitions
+if(is.na(i)) i=1
+if(is.na(type)) type = 1
+MC=100
 ## ##################################
 T = c(100,200,500)[i]
 trueK = c(3,2,2,1)
@@ -137,7 +140,7 @@ sim.criterion=function(T, type){
     return(data)
   }
   data = gen.data(type = type, T)
-  out=dffm::dffm.criterion(dffm::fpca.preprocess(data), K.max=8, p.max=8)
+  out=dffm::dffm.criterion(dffm::fpca.preprocess(data, method="naturalsplines", workinggrid = (0:20)/20), K.max=8, p.max=8)
   return(out[[1]])
 }
 ## ##################################
@@ -150,6 +153,6 @@ bias
 rmse
 ## ##################################
 table.out = matrix(c(T,type,MC,bias,rmse), ncol=length(bias)+length(rmse)+3)
-write.table(table.out,file=paste("./table2.csv", sep=''),append=T,col.names=F,row.names=F)
+write.table(table.out,file=paste("./results/table2.csv", sep=''),append=T,col.names=F,row.names=F)
 ## ##################################
 Sys.time()-start

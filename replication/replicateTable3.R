@@ -1,8 +1,7 @@
 ## ####################################################################
 ## ####################################################################
 ## Supplement for
-## "Dynamic Factor Model for Functional Time Series:
-## Identification, Estimation, and Prediction"
+## "Approximate Factor Models for Functional Time Series"
 ## by Sven Otto and Nazarii Salish.
 ## This R-script allows to reproduce Table 3.
 ## ####################################################################
@@ -18,10 +17,10 @@ fed.train = window(fed, end=time(fed)[120])
 ## ##################################
 ## Preprocessing
 ## ##################################
-JKV.fpca = fpca.preprocess(JKV)
-fed.fpca = fpca.preprocess(fed)
-JKV.train.fpca = fpca.preprocess(JKV.train)
-fed.train.fpca = fpca.preprocess(fed.train)
+JKV.fpca = fpca.preprocess(JKV, method="naturalsplines", workinggrid = seq(3,120,0.5))
+fed.fpca = fpca.preprocess(fed, method = "naturalsplines", workinggrid = seq(1,360,0.5))
+JKV.train.fpca = fpca.preprocess(JKV.train, method="naturalsplines", workinggrid = seq(3,120,0.5))
+fed.train.fpca = fpca.preprocess(fed.train, method="naturalsplines", workinggrid = seq(1,360,0.5))
 ## ##################################
 ## Information criteria
 ## ##################################
@@ -49,3 +48,4 @@ colnames(factorsandlags) = c(
   "p-bic", "p-hqc", "p-fFPE"
 )
 factorsandlags
+write.table(factorsandlags,file=paste("./table3.csv", sep=''),append=T,col.names=F,row.names=F)
