@@ -18,10 +18,10 @@
 #' dffm.forecast(d, h = 2)
 dffm.forecast = function(dffmobj, h=1){
   if(class(dffmobj) != "dffm")stop("'dffmobj' has to be an object of class 'dffm'")
-  allfactors = dffmobj$factors
+  allfactors = as.matrix(dffmobj$factors)
   for(i in 1:h) allfactors = rbind(allfactors, tail(embed(allfactors,dffmobj$p),1) %*% dffmobj$VARcoefficients)
-  if(is.ts(dffmobj$factors)) allfactors = ts(allfactors, start = start(dffmobj$factors), frequency = frequency(dffmobj$factors))
-  predfactors = window(allfactors,start = tsp(dffmobj$factors)[2]+1/(frequency(dffmobj$factors)))
+  predfactors = tail(allfactors, 2)
+  if(is.ts(dffmobj$factors)) predfactors = ts(predfactors, start = tsp(dffmobj$factors)[2]+1/(frequency(dffmobj$factors)), frequency = frequency(dffmobj$factors))
   predcurves.obsgrid = predfactors %*%  t(dffmobj$loadingfunctions.obsgrid) + matrix(rep(t(dffmobj$meanfunction.obsgrid),h), nrow = h, byrow=TRUE)
   predcurves.workgrid = predfactors %*%  t(dffmobj$loadingfunctions.workgrid) + matrix(rep(t(dffmobj$meanfunction.workgrid),h), nrow = h, byrow=TRUE)
   if(is.ts(dffmobj$factors)){
