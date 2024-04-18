@@ -1,17 +1,17 @@
 Package: dffm
 Type: Package
-Imports: stats, fda, fdapace, xts, tsbox, zoo, plot3D, pracma
-Title: Dynamic Functional Factor Model
-Version: 0.0.0.9000
+Imports: stats, plot3D
+Suggests: ReconstPoFD, fda, fdapace, xts, tsbox, pracma, zoo, gsheet
+Title: Approximate Functional Factor Model
+Version: 0.0.1
 Authors@R: 
     person(given = "Sven",family = "Otto", role = c("aut", "cre"), email = "sven.otto@uni-bonn.de")
     person(given = "Justin",family = "Franken", role = c("cre"), email = "s3jufran@uni-bonn.de")
-Description: This R package accompanies the paper "Dynamic Factor Model for Functional Time Series:
-    Identification, Estimation, and Prediction" by Sven Otto and Nazarii Salish.
+Description: This R package accompanies the paper "Approximate Factor Models for Functional Time Series" by Sven Otto and Nazarii Salish.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.3
 Depends: 
     R (>= 2.10)
