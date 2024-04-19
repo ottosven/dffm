@@ -104,7 +104,7 @@ fda.preprocess = function(data, observationgrid = NULL, workinggrid = NULL){
   if(is.ts(data)){
     splinefit = ts(splinefit, start = time(data)[1], frequency=frequency(data))
   }
-  dimnames(splinefit) = list(1:dim(splinefit)[1], round(workinggrid,2))
+  dimnames(splinefit) = list(1:dim(splinefit)[1], workinggrid)
 
   ## #############################################################################
   ## compute empirical Karhunen-Loeve decomposition
