@@ -32,7 +32,7 @@ NULL
 #' # Example with standard working grid
 #' fed = load.fed()
 #' fda.preprocess(data = fed)
-#' 
+#'
 #' # Example with a customized tighter working grid
 #' wg = seq(1,360, by=0.5)
 #' fda.preprocess(fed, workinggrid = wg)
@@ -69,7 +69,7 @@ fda.preprocess = function(data, observationgrid = NULL, workinggrid = NULL){
     ## define equidistant workinggrid based on minimum difference in the observationgrid
     workinggrid = seq(observationgrid[1], observationgrid[length(observationgrid)], min(diff(observationgrid)))
   }
-  
+
   ## #############################################################################
   ## preprocess using natural splines and optimal reconstruction
   ## #############################################################################
@@ -104,14 +104,14 @@ fda.preprocess = function(data, observationgrid = NULL, workinggrid = NULL){
   if(is.ts(data)){
     splinefit = ts(splinefit, start = time(data)[1], frequency=frequency(data))
   }
-  dimnames(splinefit) = list(1:dim(splinefit)[1], workinggrid)
-  
+  dimnames(splinefit) = list(1:dim(splinefit)[1], round(workinggrid,2))
+
   ## #############################################################################
   ## compute empirical Karhunen-Loeve decomposition
   ## #############################################################################
-  
+
   FPCA = fda.FPCA(splinefit, workinggrid)
-  
+
   ## output
   out=list(
     "densedata" = splinefit,
@@ -183,7 +183,7 @@ fda.FPCA = function(densedata, workinggrid, start = NULL, end = NULL){
   ## centered scores and meanfunction (KL)
   scores.centered = scores - matrix(rep(colMeans(scores), dim(densedata)[1]), nrow = dim(densedata)[1], byrow=TRUE)
   meanfunction = colMeans(densedata)
-  
+
   ## #############################################################################
   ## define column names and transform back to ts if input was ts
   ## #############################################################################
