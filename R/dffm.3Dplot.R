@@ -1,9 +1,8 @@
-#' dffm.3Dplot
+#' 3D plot of Functional Time Series
 #'
-#' A function that produces a 3D-plot of the data used in the functions 'fpca.preprocess' or 'dffm'. For more details,
-#' see ?fpca.preprocess or ?dffm.
+#' A function that produces a 3D-plot of the data used in the functions 'fda.preprocess'.
 #'
-#' @param fpcaobj Must be an object of class 'FPCAobj' or 'dffm'.
+#' @param fpcaobj Must be an object of class 'fdaobj'.
 #' @param domainlab ylab name of the plot.
 #' @param outputlab zlab name of the plot.
 #' @param rotate Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 35.
@@ -13,17 +12,15 @@
 #' @param ... Option to change parameters in surf3D().
 #'
 #' @return
-#' 3D plot of data used in the functions 'fpca.preprocess' or 'dffm'.
+#' 3D plot of data used in the functions 'fda.preprocess'.
 #' @export
 #'
 #' @examples
 #' JKV = load.JKV()
-#' d = dffm(JKV)
-#' d$FPCA$raw.data
+#' d = fda.preprocess(JKV)
+#' d$raw.data
 #' dffm.3Dplot(d)
 dffm.3Dplot = function(fpcaobj, domainlab=NULL, outputlab=NULL, rotate = NULL, cex.main = NULL, ...){
-  if(class(fpcaobj)[1] == "dffm") fpcaobj = fpcaobj$FPCA
-  if(class(fpcaobj)[1] != "dffm" & class(fpcaobj)[1] != "FPCAobj")stop("fpcaobj has to be an object of class 'FPCAobj' or 'dffm'")
   if(is.null(rotate)) rotate = 35
   if(is.null(cex.main)) cex.main = 1.6
   observationgrid = fpcaobj$observationgrid

@@ -10,42 +10,43 @@ library(dffm)
 ## ##################################
 ## Data
 ## ##################################
-fed = load.fed()
-JKV = load.JKV()
-JKV.train = window(JKV, end=time(JKV)[120])
+fed = load.fed23()
+LW = load.LW()
 fed.train = window(fed, end=time(fed)[120])
+LW.train = window(LW, end=time(LW)[120])
 ## ##################################
 ## Preprocessing
 ## ##################################
-JKV.fpca = fpca.preprocess(JKV, method="naturalsplines", workinggrid = seq(3,120,0.5))
-fed.fpca = fpca.preprocess(fed, method = "naturalsplines", workinggrid = seq(1,360,0.5))
-JKV.train.fpca = fpca.preprocess(JKV.train, method="naturalsplines", workinggrid = seq(3,120,0.5))
-fed.train.fpca = fpca.preprocess(fed.train, method="naturalsplines", workinggrid = seq(1,360,0.5))
+fed.fda = fda.preprocess(fed, workinggrid = seq(1,360,by=0.5))
+LW.fda = fda.preprocess(LW, workinggrid = seq(1,360,by=0.5))
+fed.train.fda = fda.preprocess(fed.train, workinggrid = seq(1,360,by=0.5))
+LW.train.fda = fda.preprocess(LW.train, workinggrid = seq(1,360,by=0.5))
 ## ##################################
 ## Information criteria
 ## ##################################
-JKV.criteria = dffm.criterion(JKV.fpca, K.max=8, p.max=8)
-fed.criteria = dffm.criterion(fed.fpca, K.max=8, p.max=8)
-JKV.train.criteria = dffm.criterion(JKV.train.fpca, K.max=8, p.max=8)
-fed.train.criteria = dffm.criterion(fed.train.fpca, K.max=8, p.max=8)
+fed.criteria = fts.criterion(fed.fda, K.max=8, p.max=8)
+LW.criteria = fts.criterion(LW.fda, K.max=8, p.max=8)
+fed.train.criteria = fts.criterion(fed.train.fda, K.max=8, p.max=8)
+LW.train.criteria = fts.criterion(LW.train.fda, K.max=8, p.max=8)
 ## ##################################
 ## Information criteria results
 ## ##################################
 factorsandlags = rbind(
-  c(JKV.criteria$IC.min),
-  c(fed.criteria$IC.min),
-  c(JKV.train.criteria$IC.min),
-  c(fed.train.criteria$IC.min)
+  c(fed.criteria$IC.min[-3,]),
+  c(fed.train.criteria$IC.min[-3,]),
+  c(LW.criteria$IC.min[-3,]),
+  c(LW.train.criteria$IC.min[-3,])
 )
+
 rownames(factorsandlags) = c(
-  "JKV (full data)",
-  "fed (full data)",
-  "JKV (first 120 months)",
-  "fed (first 120 months)"
+  "fed (full)",
+  "fed (first 120)",
+  "LW (full)",
+  "LW (first 120)"
 )
 colnames(factorsandlags) = c(
-  "K-bic", "K-hqc", "K-fFPE",
-  "p-bic", "p-hqc", "p-fFPE"
+  "K-bic", "K-hqc",
+  "p-bic", "p-hqc"
 )
-factorsandlags
-write.table(factorsandlags,file=paste("./table3.csv", sep=''),append=T,col.names=F,row.names=F)
+t(factorsandlags)
+write.table(t(factorsandlags),file=paste("./table3.csv", sep=''),append=T,col.names=F,row.names=F)

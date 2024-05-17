@@ -2,7 +2,7 @@
 % Please edit documentation in R/dffm.3Dplot.R
 \name{dffm.3Dplot}
 \alias{dffm.3Dplot}
-\title{dffm.3Dplot}
+\title{3D plot of Functional Time Series}
 \usage{
 dffm.3Dplot(
   fpcaobj,
@@ -14,7 +14,7 @@ dffm.3Dplot(
 )
 }
 \arguments{
-\item{fpcaobj}{Must be an object of class 'FPCAobj' or 'dffm'.}
+\item{fpcaobj}{Must be an object of class 'fdaobj'.}
 
 \item{domainlab}{ylab name of the plot.}
 
@@ -29,15 +29,14 @@ NULL is default.}
 \item{...}{Option to change parameters in surf3D().}
 }
 \value{
-3D plot of data used in the functions 'fpca.preprocess' or 'dffm'.
+3D plot of data used in the functions 'fda.preprocess'.
 }
 \description{
-A function that produces a 3D-plot of the data used in the functions 'fpca.preprocess' or 'dffm'. For more details,
-see ?fpca.preprocess or ?dffm.
+A function that produces a 3D-plot of the data used in the functions 'fda.preprocess'.
 }
 \examples{
 JKV = load.JKV()
-d = dffm(JKV)
-d$FPCA$raw.data
+d = fda.preprocess(JKV)
+d$raw.data
 dffm.3Dplot(d)
 }

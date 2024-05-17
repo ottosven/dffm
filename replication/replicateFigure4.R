@@ -5,62 +5,49 @@
 ## by Sven Otto and Nazarii Salish.
 ## This R-script allows to reproduce Figure 4.
 ## ####################################################################
-## The G7 data used in this paper are the property of Thomson Reuters Eikon
-## and must be purchased from Thomson Reuters Eikon to gain access.
-## ####################################################################
-## To reproduce the G7 dataset, one has to follow these steps:
-## 1) You have access to a Thomson Reuters Eikon account
-## 2) You have Thomson Reuters Eikon and the Eikon Excel Add-In installed
-## 3) Use the Excel Add-In to retrieve the data. 
-## Each time series in Thomson Reuters Eikon has a specific code. 
-## For instance, CA1YT=RR are the yields of a zero coupon bond for Canada with 1 year time to maturity
-## Use the following codes to retrieve the time series:
-## Canada: CA1MT=RR, CA2MT=RR, CA3MT=RR, CA6MT=RR, CA1YT=RR, CA2YT=RR, CA3YT=RR, CA4YT=RR, CA5YT=RR, CA7YT=RR, CA10YT=RR, CA20YT=RR, CA30YT=RR
-## France: FR2YT=RR, FR3YT=RR, FR4YT=RR, FR5YT=RR, FR6YT=RR, FR7YT=RR, FR8YT=RR, FR9YT=RR, FR10YT=RR, FR15YT=RR, FR20YT=RR, FR25YT=RR, FR30YT=RR
-## Germany: DE2YT=RR, DE3YT=RR, DE4YT=RR, DE5YT=RR, DE6YT=RR, DE7YT=RR, DE8YT=RR, DE9YT=RR, DE10YT=RR, DE15YT=RR, DE20YT=RR, DE25YT=RR, DE30YT=RR
-## Italy: IT3YT=RR, IT4YT=RR, IT5YT=RR, IT6YT=RR, IT7YT=RR, IT8YT=RR, IT9YT=RR, IT10YT=RR, IT15YT=RR, IT20YT=RR, IT25YT=RR, IT30YT=RR
-## Japan: JP3MT=RR, JP6MT=RR, JP9MT=RR, JP1YT=RR, JP2YT=RR, JP3YT=RR, JP4YT=RR, JP5YT=RR, JP6YT=RR, JP7YT=RR, JP8YT=RR, JP9YT=RR, JP10YT=RR, JP15YT=RR, JP20YT=RR
-## United Kingdom: GB3MT=RR, GB6MT=RR, GB1YT=RR, GB2YT=RR, GB3YT=RR, GB4YT=RR, GB5YT=RR, GB6YT=RR, GB7YT=RR, GB8YT=RR, GB9YT=RR, GB10YT=RR, GB12YT=RR, GB15YT=RR, GB20YT=RR, GB25YT=RR, GB30YT=RR
-## United States: US3MT=RR, US6MT=RR, US1YT=RR, US2YT=RR, US3YT=RR, US5YT=RR, US7YT=RR, US10YT=RR, US20YT=RR, US30YT=RR
-## For each time series use the following parameters:
-## Start:01.01.1995, End:30.06.2022, Interval:1MO
-## 4) Save the data for each country into a mts-object with monthly frequency. The column names are the times to maturity in months. 
-## Note that some values are missing in the original dataset. Missing vallues in the mts-object are set to "NA".
-## 5) Save the list of the seven mts-objects as "G7data.Rdata". The names of the list elements are c("CA", "FR", "DE", "IT", "JP", "GB", "US")
-## ####################################################################
 ## ####################################################################
 library(dffm)
 ## ##################################
 ## Data
 ## ##################################
-load("./not-for-public-access/G7data.RData")
+fed = load.fed23()
+LW = load.LW()
 ## ##################################
-## Information Criteria and loading functions
+## Nelson-Siegel loading functions
 ## ##################################
-get.workinggrid = function(data, gridsize){
-  obsgrid = as.numeric(colnames(data))
-  seq(obsgrid[1], obsgrid[length(obsgrid)], gridsize)
-}
-##
-figure.loadingfunctions = function(data, K = 4, signpattern = NULL, main = NULL, ylim = NULL){
-  if(is.null(signpattern)) signpattern=rep(1,K)
-  if(is.null(main)) main=paste("Loadings", deparse(substitute(data)), "1995-2022")
-  FPCdata = fpca.preprocess(data, method = "naturalsplines", workinggrid = get.workinggrid(data, 0.5))
-  FPCloadings = FPCdata$eigenfunctions.workgrid[,1:K]
-  FPCloadings = FPCloadings%*%diag(signpattern)
-  if(is.null(ylim)) ylim = range(FPCloadings)
-  plot(FPCdata$workinggrid, FPCloadings[,1], ylim = ylim, type='l', lty=1, col=1, lwd=3,
-       xlab = 'Maturity (months)', ylab = '', main=main,  cex.lab=1.3, cex.axis=1.3, cex.main=1.6, yaxt="n")
-  axis(2, at = seq(-0.1, 0.2, by = 0.1), cex.axis=1.3)
-  for(i in 2:K){
-    lines(FPCdata$workinggrid, FPCloadings[,i], lty=i, col=1, lwd = 4-i+3)
+figure.DNS = function(lambda = NULL, data.length = NULL, maturity.length = NULL){
+  if(is.null(maturity.length)) maturity.length = 120
+  if(is.null(data.length)) data.length = 360
+  if(is.null(lambda)) lambda = 0.0609
+  NSline <- matrix(nrow=data.length, ncol=3)
+  for (i in 1:data.length){
+    NSline[i, 1] <- 1
+    NSline[i, 2] <- (1-exp(-lambda*i))/(lambda * i)
+    NSline[i, 3] <- (1-exp(-lambda*i))/(lambda * i) - exp(- lambda * i)
   }
-  legendnames = c(expression(hat(psi)[1]),expression(hat(psi)[2]), expression(hat(psi)[3]), expression(hat(psi)[4]), expression(hat(psi)[5]), expression(hat(psi)[6]))
+  plot(1:maturity.length, NSline[1:maturity.length,1], cex.lab=1.3, cex.axis=1.3, cex.main=2,
+       type='l', ylim = c(0,1.5), lty=1, lwd = 4, xlab = "Maturity (months)", ylab = "", main= "Nelson-Siegel loadings")
+  lines(1:maturity.length, NSline[1:maturity.length,2], lty=2, lwd=4)
+  lines(1:maturity.length, NSline[1:maturity.length,3], lty=4, lwd=3)
+  legend(x = "top", legend = c('Level', 'Slope', 'Curvature'), lty = c(1,2,4),
+         lwd = c(4,4,3), seg.len=2.5, cex = 1, pt.cex=2, horiz = TRUE, bty="n")
+}
+## ##################################
+## FFM loading functions
+## ##################################
+figure.loadingfunctions = function(data, signpattern = c(1,1,1,1), main, ylim){
+  FDAdata = fda.preprocess(data, workinggrid = seq(as.numeric(colnames(data))[1],as.numeric(colnames(data))[dim(data)[2]],0.5))
+  loadings = FDAdata$eigenfunctions
+  plot(FDAdata$workinggrid, signpattern[1]*loadings[,1], ylim = ylim, type='l', lty=1, col=1, lwd=4,
+       xlab = 'Maturity (months)', ylab = '', main=main,  cex.lab=1.3, cex.axis=1.3, cex.main=2)
+  lines(FDAdata$workinggrid, signpattern[2]*loadings[,2], lty=2, col=1, lwd = 4)
+  lines(FDAdata$workinggrid, signpattern[3]*loadings[,3], lty=4, col=1, lwd = 3)
+  lines(FDAdata$workinggrid, signpattern[4]*loadings[,4], lty=1, col="grey", lwd = 1)
   legend(x="top",
-         legend = legendnames[1:K],
-         col = 1,
-         lty = 1:K,
-         lwd = c(3,5,4,3,2,1)[1:K],
+         legend = c(expression(hat(psi)[1]),expression(hat(psi)[2]), expression(hat(psi)[3]), expression(hat(psi)[4])),
+         col = c(1,1,1,"grey"),
+         lty = c(1,2,4,1),
+         lwd = c(4,4,3,1),
          pt.cex = 2,
          cex = 1,
          text.col = "black",
@@ -70,14 +57,11 @@ figure.loadingfunctions = function(data, K = 4, signpattern = NULL, main = NULL,
   )
 }
 ## ##################################
-## Plot loading functions
+## Loading functions DNS, FED, LW
 ## ##################################
-pdf("figure4.pdf", width=30, height=18, pointsize = 30)
-par(mfrow=c(2,3))
-figure.loadingfunctions(G7data$CA, 4, signpattern = c(1,1,-1,-1), ylim = c(-0.12, 0.188), main = "Estimated loadings for Canada")
-figure.loadingfunctions(G7data$FR, 4, signpattern = c(1,1,-1,-1), ylim = c(-0.12, 0.188), main = "Estimated loadings for France")
-figure.loadingfunctions(G7data$DE, 4, signpattern = c(1,1,-1,-1), ylim = c(-0.12, 0.188), main = "Estimated loadings for Germany")
-figure.loadingfunctions(G7data$IT, 3, signpattern = c(1,1,-1), ylim = c(-0.12, 0.188), main = "Estimated loadings for Italy")
-figure.loadingfunctions(G7data$JP, 3, signpattern = c(1,1,-1), ylim = c(-0.12, 0.188), main = "Estimated loadings for Japan")
-figure.loadingfunctions(G7data$GB, 5, signpattern = c(1,1,-1,-1,-1), ylim = c(-0.12, 0.188), main = "Estimated loadings for United Kingdom")
+pdf("figure4.pdf", width=30, height=9, pointsize = 30)
+par(mfrow=c(1,3))
+figure.DNS()
+figure.loadingfunctions(fed, signpattern=c(1, 1, -1, -1), main="Estimated loadings FED data", ylim = range(-0.15, 0.15))
+figure.loadingfunctions(LW, signpattern=c(1, 1, -1, -1), main="Estimated loadings LW data", ylim = range(-0.22, 0.22))
 dev.off()

@@ -1,9 +1,9 @@
-#' dffm.MSEplot
+#' Plot of the MSE of different combinations of factors and lags
 #'
 #' A function that produces a 3D-plot of the mean squared errors from the dffm.criterion function. For more information about the
-#' mse, see the dffm.criterion function.
+#' mse, see the fts.criterion function.
 #'
-#' @param criterion Must be an object of class 'dffm', 'FPCAobj' or an output of the dffm.criterion function.
+#' @param criterion Must be an output of the fts.criterion function.
 #' @param kmax A parameter specifying the maximum number of factors used in the 3D plot.
 #' @param pmax A parameter specifying the maximum number lags used in the 3D plot.
 #' @param rotate Parameter to change the horizontal rotation of the 3D plot. If NULL rotate will be set to 120.
@@ -19,17 +19,9 @@
 #' @examples
 #' # with dffm.criterion
 #' JKV = load.JKV()
-#' fpca = fpca.preprocess(data = JKV)
-#' dffm.MSEplot(dffm.criterion(fpca, p.max = 8), kmax = 15, pmax = 8)
-#' # with FPCAobj
-#' dffm.MSEplot(fpca, kmax = 12, pmax = 10)
+#' JKV.fda = fda.preprocess(data = JKV)
+#' dffm.MSEplot(fts.criterion(JKV.fda, p.max = 8), kmax = 15, pmax = 8)
 dffm.MSEplot = function(criterion, kmax, pmax, rotate = NULL, cex.main = NULL, ...){
-  if(!"MSE.matrix" %in% names(criterion) & class(criterion)[1] == "dffm" | !"MSE.matrix" %in% names(criterion) & class(criterion)[1] == "FPCAobj"){
-    criterion = dffm.criterion(criterion)
-  }
-  if(!"MSE.matrix" %in% names(criterion) & class(criterion)[1] != "dffm" & class(criterion)[1] != "FPCAobj"){
-    stop("criterion has to be of class 'dffm' or 'FPCAobj' or an output of the function dffm.criterion")
-  }
   if(sum(which(criterion$MSE.matrix[1:kmax, 1:pmax] == "Inf", arr.ind = TRUE, useNames = TRUE)) > 0){
     stop("criterion is not allowed to have 'Inf' values inside of the 'MSE.matrix'")
   }

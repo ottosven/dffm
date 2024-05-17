@@ -1,0 +1,190 @@
+## ####################################################################
+## ####################################################################
+## Supplement for
+## "Approximate Factor Models for Functional Time Series"
+## by Sven Otto and Nazarii Salish.
+## This R-script allows to simulate the data needed for Figure 2 and Table 2 for models M1--M3
+## It simulates estimates K-hat and psi-hat and saves them in the folder "simulationresults".
+## Please specify the number of Monte Carlo replications, sample size, and model type below
+## ####################################################################
+rm(list=ls())
+start<-Sys.time()
+library(parallel)
+library(dffm)
+## ####################################################
+## Cluster setup
+## ####################################################
+## Check whether the program runs on CHEOPS Cluster or local machine.
+## CHEOPS is TRUE if it runs on cluster and FALSE if it runs on local machine:
+CHEOPS = !is.na(strtoi(Sys.getenv(c("SLURM_NTASKS"))))
+## Setup cluster
+if(CHEOPS){
+  ntasks = strtoi(Sys.getenv(c("SLURM_NTASKS")))
+  nworkers = ntasks
+  cl = makeCluster(nworkers, type="FORK")
+} else {
+  cl = makeCluster(detectCores()-1)
+}
+## ####################################################
+## Cluster input variables
+## ####################################################
+if(CHEOPS){
+  input = as.numeric(commandArgs(trailingOnly = TRUE))
+  if(length(input) != 4) stop("Incorrect cluster input arguments")
+  MC = input[1]
+  n = input[2]
+  type = input[3]
+  i = input[4]
+} else {
+  ## Monte Carlo replications
+  MC = 100
+  ## Sample size
+  n = 100
+  ## Model type
+  type = 3
+  ## dummy index
+  i = 1
+}
+c(MC, n, type, i)
+## ####################################################
+## Global input variables:
+## ####################################################
+## number of basis functions
+L = 20
+## Gridsize
+G = 51
+## ####################################################
+
+
+## ####################################################
+## Define Models
+## ####################################################
+get.A = function(type, L){
+  if(type == 1){
+    HF = c(TRUE, rep(FALSE, L-1))
+    A = array(0, dim=c(L,L,2))
+    A[1,1,1] = 0.4
+    A[1,1,2] = 0.4
+  } else if(type == 2){
+    HF = c(FALSE, TRUE, rep(FALSE, L-2))
+    A = array(0, dim=c(L,L,2))
+    A[2,2,1] = 0.4
+    A[2,2,2] = 0.4
+  } else if(type == 3){
+    HF = c(FALSE, FALSE, FALSE, TRUE, rep(FALSE, L-4))
+    A = array(0, dim=c(L,L,2))
+    A[4,4,1] = 0.4
+    A[4,4,2] = 0.4
+  } else {
+    stop('input is not valid')
+  }
+  return(list(A,HF))
+}
+
+## ####################################################
+## Monte Carlo Simulation
+## ####################################################
+sim.MC = function(n, A, HF, L, G, psi){
+  get.fourierbasis = function(L = 20, gridsize = 51){
+    ## define the first L fourier basis functions on a grid of [0,1]
+    grid = seq(0,1, length.out = gridsize)
+    basis = matrix(nrow = length(grid), ncol = L)
+    basis[,1] = 1
+    for(i in 1:((L-1)/2)){
+      basis[,2*i] = sqrt(2)*sin(2*i*pi*grid)
+      basis[,2*i+1] = sqrt(2)*cos(2*i*pi*grid)
+    }
+    if(L%%2 == 0){ #check if L is even
+      basis[,L] = sqrt(2)*sin(L*pi*grid)
+    }
+    rownames(basis) = round((0:(gridsize-1))/(gridsize-1),2)
+    return(basis)
+  }
+  sim.FTS = function(n, A, HF, basis){
+    p = dim(A)[3]
+    ## generate iid vector time series e
+    e = diag(1/sqrt((1:L)))%*% matrix(rnorm(L*n), nrow = L, ncol = n)
+    ## generate dependent vector time series according to A
+    for(t in (p+1):n){
+      for(i in 1:p){
+        e[,t] = e[,t] + A[,,i] %*% e[,t-i]
+      }
+    }
+    ## generate factor component
+    chi = t(basis[,HF,drop=F] %*% e[HF,,drop=F])
+    ## generate error component
+    epsilon = t(basis[,!HF,drop=F] %*% e[!HF,,drop=F])
+    ## generate FTS
+    Y = chi + epsilon
+    return(list(Y,chi))
+  }
+  basis = get.fourierbasis(L,G)
+  data = sim.FTS(n=n, A=A, HF = HF, basis = basis)
+  Y = data[[1]]
+  chi = data[[2]]
+  fdaobj = dffm::fda.preprocess(Y)
+  crit = dffm::fts.criterion(fdaobj, K.max=8, p.max=8)
+
+  K.bic = crit$IC.min[1,1]
+  K.hqc = crit$IC.min[2,1]
+  p.bic = crit$IC.min[1,2]
+  p.hqc = crit$IC.min[2,2]
+
+  cumACobj = dffm::fts.cumAC(fdaobj)
+  psihat = cumACobj$eigenfunctions[,1:K.bic]
+  Fhat = cumACobj$scores[,1:K.bic]
+  chihat = Fhat %*% t(psihat)
+
+  ## mean of error norms ||chihat_t - chi_t||:
+  chihat.error = mean((chihat - chi)^2)
+  ## estimated first loading function
+  psihat1 = cumACobj$eigenfunctions[,1]
+  ## flip sign if necessary
+  if(sum((-psihat1 - psi)^2) < sum((psihat1 - psi)^2)){
+    psihat1 = -psihat1
+  }
+  ## collect number of factors/lags estimator, mean error norm, and first estimated loading:
+  result = c(K.bic, K.hqc, p.bic, p.hqc, chihat.error, psihat1)
+  names(result) = c("K.bic", "K.hqc", "p.bic", "p.hqc", "chihat.error", seq(0,1,length.out=G))
+  return(result)
+}
+
+modelspec = get.A(type, L)
+A = modelspec[[1]]
+HF = modelspec[[2]]
+
+## true psi function
+grid = seq(0,1, length.out = G)
+if(type==1){
+  psi = rep(1,G)
+} else if(type == 2){
+  psi = sqrt(2)*sin(2*pi*grid)
+} else {
+  psi = sqrt(2)*sin(4*pi*grid)
+}
+
+
+MC.out = parSapply(cl, rep(n,MC), sim.MC, A=A, HF=HF, L=L, G=G, psi=psi)
+
+MC.out.1 = MC.out[1:5,]
+MC.out.2 = MC.out[-(1:5),]
+
+## ####################################################
+## Output table:
+## Col1: type
+## Col2: sample size T
+## Col3: index for MC array
+## Col4-7: K.bic, K.hqc, p.bic, p.hqc
+## Col8: chihat.error
+## Col9-end: psihat1 evaluated on workinggrid (G entries)
+## ####################################################
+table.out.1 = cbind(rep(type, ncol(MC.out)),rep(n, ncol(MC.out)),rep(i, ncol(MC.out)), t(MC.out.1))
+table.out.2 = cbind(rep(type, ncol(MC.out)),rep(n, ncol(MC.out)),rep(i, ncol(MC.out)), t(MC.out.2))
+
+write.table(table.out.1,file=paste("./simulationresults/ICsim-",type,"-",n,"-",i,".csv", sep=''),append=T,col.names=F,row.names=F)
+write.table(table.out.2,file=paste("./simulationresults/PSIsim-",type,"-",n,"-",i,".csv", sep=''),append=T,col.names=F,row.names=F)
+
+
+
+## ##################################
+Sys.time()-start

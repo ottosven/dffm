@@ -2,12 +2,12 @@
 % Please edit documentation in R/dffm.MSEplot.R
 \name{dffm.MSEplot}
 \alias{dffm.MSEplot}
-\title{dffm.MSEplot}
+\title{Plot of the MSE of different combinations of factors and lags}
 \usage{
 dffm.MSEplot(criterion, kmax, pmax, rotate = NULL, cex.main = NULL, ...)
 }
 \arguments{
-\item{criterion}{Must be an object of class 'dffm', 'FPCAobj' or an output of the dffm.criterion function.}
+\item{criterion}{Must be an output of the fts.criterion function.}
 
 \item{kmax}{A parameter specifying the maximum number of factors used in the 3D plot.}
 
@@ -26,13 +26,11 @@ A 3D plot of the mse errors from the dffm.criterion function.
 }
 \description{
 A function that produces a 3D-plot of the mean squared errors from the dffm.criterion function. For more information about the
-mse, see the dffm.criterion function.
+mse, see the fts.criterion function.
 }
 \examples{
 # with dffm.criterion
 JKV = load.JKV()
-fpca = fpca.preprocess(data = JKV)
-dffm.MSEplot(dffm.criterion(fpca, p.max = 8), kmax = 15, pmax = 8)
-# with FPCAobj
-dffm.MSEplot(fpca, kmax = 12, pmax = 10)
+JKV.fda = fda.preprocess(data = JKV)
+dffm.MSEplot(fts.criterion(JKV.fda, p.max = 8), kmax = 15, pmax = 8)
 }
