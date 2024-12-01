@@ -25,8 +25,8 @@ dffm.3Dplot = function(fpcaobj, domainlab=NULL, outputlab=NULL, rotate = NULL, c
   if(is.null(cex.main)) cex.main = 1.6
   observationgrid = fpcaobj$observationgrid
   data = fpcaobj$raw.data
-  Tdim <- dim(data)[1]
-  time <- replicate(length(observationgrid), c(time(data)))
+  Tdim = dim(data)[1]
+  time = replicate(length(observationgrid), c(time(data)))
   plot3D::surf3D(x = time,
                  y = t(replicate(Tdim, observationgrid)),
                  z = data,

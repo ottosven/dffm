@@ -13,9 +13,9 @@
 #' @examples
 #' data = load.JKV()
 load.JKV = function(){
-  temp <- tempfile()
+  temp = tempfile()
   download.file("http://qed.econ.queensu.ca/jae/2014-v29.1/jungbacker-koopman-van_der_wel/jkv-data.zip",temp)
-  data <- read.table(unz(temp, "UnsmFB_70-09.txt"))
+  data = read.table(unz(temp, "UnsmFB_70-09.txt"))
   unlink(temp)
   jungbacker.data = ts(data, start = c(1970, 1), frequency = 12)
   colnames(jungbacker.data) = c(3,6,9,12,15,18,21,24,30,36,48,60,72,84,96,108,120)

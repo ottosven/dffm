@@ -10,12 +10,12 @@
 #' @export
 #' @examples
 #' data = load.LW()
-load.LW <- function(){
+load.LW = function(){
   data = gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1-wmStGZHLx55dSYi3gQK2vb3F8dMw_Nb/edit?gid=378310471#gid=378310471')
   df = data[-(1:8), -1]
   for(i in seq_along(df)) {
     if(is.character(df[[i]])) {
-      df[[i]] <- as.numeric(as.character(df[[i]]))
+      df[[i]] = as.numeric(as.character(df[[i]]))
     }
   }
   LW.data = ts(df, start = c(1961,6), frequency=12)

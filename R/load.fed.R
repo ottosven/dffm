@@ -1,16 +1,16 @@
 #' load fed
 #'
-#' Function which provides data from the FED (h.15 selected infrastates) via the following website:
+#' Function which provides data from the FED (h.15 selected interest rates) via the following website:
 #' https://www.federalreserve.gov/datadownload/Output.aspx?rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&lastobs=&from=&to=&filetype=csv&label=include&layout=seriescolumn&type=package
 #'
 #' @return
 #' Time series of yield curve data containing 11 maturities ranging from 1 to 360 month, which are
-#' observed from 2002 to 2022.
+#' observed from 2002 to 2023.
 #' @export
 #' @examples
 #' data = load.fed()
-load.fed <- function(){
-  temp <- tempfile()
+load.fed = function(){
+  temp = tempfile()
   download.file("https://www.federalreserve.gov/datadownload/Output.aspx?rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&lastobs=&from=&to=&filetype=csv&label=include&layout=seriescolumn&type=package",temp)
   data = read.csv(temp, skip = 5)
   unlink(temp)
@@ -34,6 +34,6 @@ load.fed <- function(){
   data = data[completeVec,]
   data = tsbox:: ts_frequency(data, to = "month", aggregate = "last", na.rm = TRUE)
   data = tsbox:: ts_ts(data)
-  data = window(data, start = c(2001,7), end=c(2021,12))
+  data = window(data, start = c(2001,7), end=c(2023,12))
   return(suppressWarnings(data))
 }

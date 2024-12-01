@@ -30,7 +30,7 @@ dffm.MSEplot = function(criterion, kmax, pmax, rotate = NULL, cex.main = NULL, .
   mse = criterion$MSE.matrix[1:kmax, 1:pmax]
   plot3D::surf3D(y = replicate(pmax, 1:kmax),
                  x = t(replicate(kmax, 1:pmax)),
-                 ytick<-seq(1, 10, by=5),
+                 ytick = seq(1, 10, by=5),
                  z = mse,
                  bty="b2",
                  theta=rotate,

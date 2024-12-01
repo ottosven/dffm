@@ -8,10 +8,10 @@ load.fed()
 }
 \value{
 Time series of yield curve data containing 11 maturities ranging from 1 to 360 month, which are
-observed from 2002 to 2022.
+observed from 2002 to 2023.
 }
 \description{
-Function which provides data from the FED (h.15 selected infrastates) via the following website:
+Function which provides data from the FED (h.15 selected interest rates) via the following website:
 https://www.federalreserve.gov/datadownload/Output.aspx?rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&lastobs=&from=&to=&filetype=csv&label=include&layout=seriescolumn&type=package
 }
 \examples{

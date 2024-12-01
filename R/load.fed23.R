@@ -1,6 +1,6 @@
 #' load fed 2023 version
 #'
-#' Function which provides data from the FED (h.15 selected infrastates) via the following website:
+#' Function which provides data from the FED (h.15 selected interest rates) via the following website:
 #' https://www.federalreserve.gov/datadownload/Output.aspx?rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&lastobs=&from=&to=&filetype=csv&label=include&layout=seriescolumn&type=package
 #'
 #' @return

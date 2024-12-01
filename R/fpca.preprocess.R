@@ -99,16 +99,16 @@ fpca.preprocess = function(data, workinggrid = NULL, observationgrid = NULL, met
     Fd = fda::smooth.basis(observationgrid.unit, t(data), FdPar)$fd
     PCA = fda::pca.fd(Fd, nharm = Fd$basis$nbasis, harmfdPar = fda::fdPar(Fd), centerfns = TRUE)
     eigenvalues = PCA$values
-    fpcascores <- PCA$scores
+    fpcascores = PCA$scores
     #
     colnames(fpcascores) = paste("PC",1:dim(fpcascores)[2], sep = "")
     if(is.ts(data)) fpcascores = ts(fpcascores, start = head(time(data),1), frequency = frequency(data))
-    eigenfunctions.obsgrid <- fda::eval.fd(observationgrid.unit, PCA$harmonics)
-    meanfunction.obsgrid <- fda::eval.fd(observationgrid.unit, PCA$meanfd)
+    eigenfunctions.obsgrid = fda::eval.fd(observationgrid.unit, PCA$harmonics)
+    meanfunction.obsgrid = fda::eval.fd(observationgrid.unit, PCA$meanfd)
     rownames(eigenfunctions.obsgrid) = observationgrid
     rownames(meanfunction.obsgrid) = observationgrid
-    eigenfunctions.workgrid <- fda::eval.fd(workinggrid.unit, PCA$harmonics)
-    meanfunction.workgrid <- fda::eval.fd(workinggrid.unit, PCA$meanfd)
+    eigenfunctions.workgrid = fda::eval.fd(workinggrid.unit, PCA$harmonics)
+    meanfunction.workgrid = fda::eval.fd(workinggrid.unit, PCA$meanfd)
     rownames(eigenfunctions.workgrid) = workinggrid
     rownames(meanfunction.workgrid) = workinggrid
   }

@@ -58,7 +58,7 @@ fda.preprocess = function(data, observationgrid = NULL, workinggrid = NULL){
   }
   ## check workinggrid
   if(!is.null(workinggrid)){
-    work.diff <- diff(workinggrid)
+    work.diff = diff(workinggrid)
     if(all(abs(work.diff - work.diff[1]) > 1e-8)){
       stop("workinggrid must be equidistant. Please specify a valid working grid.")
     }
