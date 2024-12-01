@@ -45,7 +45,7 @@ fts.VARforecast = function(fdaobj, K = 3, p = 1, AR = FALSE, start = NULL, end =
   }
   loadings = fdaobj$eigenfunctions[,1:K,drop=F]
   factors = fdaobj$scores.centered[,1:K,drop=F]
-  n = dim(fdaobj$scores)[1]
+  n = dim(fdaobj$scores.centered)[1]
 
   ## check start and end, restrict factors to specified period
   if(is.null(start)){
