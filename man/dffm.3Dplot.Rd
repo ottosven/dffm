@@ -35,7 +35,7 @@ NULL is default.}
 A function that produces a 3D-plot of the data used in the functions 'fda.preprocess'.
 }
 \examples{
-JKV = load.JKV()
+JKV = load.LW()
 d = fda.preprocess(JKV)
 d$raw.data
 dffm.3Dplot(d)

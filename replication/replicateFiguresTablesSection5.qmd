@@ -1,0 +1,415 @@
+---
+title: "Replication of Figures 3--7 and Tables 3--4"
+subtitle: "Approximate Factor Models for Functional Time Series"
+author: "Sven Otto and Nazarii Salish"
+format: pdf 
+
+knitr:
+  opts_chunk:
+    dev: pdf
+    fig.path: "figures/"
+    fig.process: |
+      function(x, options) {
+        # Save each figure as individual PDF
+        file.copy(x, sub("\\.pdf$", "-standalone.pdf", x))
+        knitr::include_graphics(x)
+      }
+---
+
+Install the `dffm` package:
+```{r, eval=FALSE}
+remotes::install_github("ottosven/dffm")
+```
+
+
+```{r}
+library(dffm)
+library(knitr)
+library(plot3D)
+
+# Create figures directory if it doesn't exist
+dir.create("figures", showWarnings = FALSE)
+# Create tables directory if it doesn't exist
+dir.create("tables", showWarnings = FALSE)
+# Create data directory if it doesn't exist
+dir.create("data", showWarnings = FALSE)
+```
+
+
+Run `01_retrieve_data.R` to download the data used in the empirical applications. The data will be saved in the `data` directory.
+```{r, eval = FALSE}
+source("01_retrieve_data.R")
+```
+
+
+# Replication of Figure 3
+
+**Log mortality rate curves for U.S. males and U.S. Treasury yield curves**
+
+
+```{r, fig.height=4.5, fig.width=6, fig.align='center'}
+#| label: figure3a
+# Load and prep data
+mydata = readRDS("./data/mort.rds")
+grid = c(1:9, seq(10, ncol(mydata), by=5))
+mydata2 = ts(mydata[, grid], start=1933, frequency=1)
+colnames(mydata2) = grid
+fda2 = fda.preprocess(mydata2)
+
+# Set up plot variables
+time = replicate(length(fda2$observationgrid), time(fda2$raw.data))
+
+# Create 3D surface plot
+plot3D::surf3D(
+  x = time,
+  y = t(replicate(dim(fda2$raw.data)[1], fda2$observationgrid)),
+  z = fda2$raw.data,
+  theta = 45, phi = 12,
+  bty = "b2",
+  colvar = fda2$raw.data,
+  shade = 0.05,
+  border = "black",
+  zlim = range(fda2$raw.data) + c(-0.1, 0.1),
+  xlab = 'time', ylab = "age", zlab = "log death rate",
+  ticktype = "detailed",
+  expand = 0.5,
+  cex.axis = 0.8,
+  col = NULL,
+  colkey = FALSE
+)
+```
+
+
+```{r, fig.height=4.5, fig.width=6, fig.align='center'}
+#| label: figure3b
+# Load and prep data
+mydata = readRDS("./data/LW360.rds")
+grid = c(1, 10, seq(20, 360, by=20))
+mydata2 = ts(mydata[, grid], start=c(1985,11), frequency=12)
+colnames(mydata2) = grid
+fda2 = fda.preprocess(mydata2)
+
+# Set up plot variables
+time = replicate(length(fda2$observationgrid), time(fda2$raw.data))
+
+# Create 3D surface plot
+plot3D::surf3D(
+ x = time,
+ y = t(replicate(dim(fda2$raw.data)[1], fda2$observationgrid)),
+ z = fda2$raw.data,
+ theta = 35, phi = 12,
+ bty = "b2",
+ colvar = fda2$raw.data,
+ shade = 0.05,
+ border = "black",
+ zlim = range(fda2$raw.data) + c(-0.1, 0.1),
+ xlab = 'time', ylab = "maturity (months)", zlab = "yield (percent)",
+ ticktype = "detailed",
+ expand = 0.5,
+ cex.axis = 0.8,
+ col = NULL,
+ colkey = FALSE
+)
+```
+
+
+# Replication of Table 3
+
+**In-sample MSFEs for log mortality curves with VAR(1) dynamics**
+
+```{r}
+# Load data and create forecasts
+mydata = readRDS("./data/mort.rds")
+fdaobj = readRDS("./data/mort-fda.rds")
+cumacobj = fts.cumAC(fdaobj)
+
+VAR1forecasts = function(K, obj) {
+ forecast = fts.VARforecast(obj, K=K, p=1, AR=FALSE, h=0)
+ colMeans((forecast$curve.predict - mydata)^2)
+}
+
+# Calculate metrics and create table
+tab = round(rbind(
+ Factor = colMeans(sapply(1:8, VAR1forecasts, obj=cumacobj)),
+ PCA = colMeans(sapply(1:8, VAR1forecasts, obj=fdaobj))
+), 5)
+colnames(tab) = 1:8
+
+# Export to LaTeX and display
+latex_content = c(
+ "\\begin{table}[t]",
+ "\\centering",
+ kable(tab, format="latex", booktabs=TRUE),
+ "\\end{table}"
+)
+writeLines(latex_content, "tables/table3.tex")
+kable(tab)
+```
+
+
+
+# Replication of Figure 4
+
+**VAR(1) forecasting results for the mortality data**
+
+
+```{r, fig.height=3, fig.width=10, fig.align='center'}
+#| label: figure4
+par(mfrow = c(1,3))
+
+# Plot 1: MSFE comparison
+plot(1:8, tab[1,], type="l", lwd=2, ylab="", xlab="", main="1-step in-sample MSFE")
+lines(1:8, tab[2,], lty=2, lwd=2)
+legend("topright", c("factor", "PCA"), lty=c(1,2), lwd=2, seg.len=2.5, cex=0.8)
+
+# Plot 2: MSFE comparison
+results = readRDS("./mortality-results/1step-rolling.rds")
+MSEs = colMeans(results)
+plot_msfe = function(idx1, idx2, steps, title) {
+  plot(steps, MSEs[idx1], type="l", lwd=2, main=title, ylab="", xlab="")
+  lines(steps, MSEs[idx2], lty=2)
+  legend("topleft", c("factor", "PCA"), lty=c(1,2), lwd=c(2,1), cex=0.8)
+}
+plot_msfe(4:10, 42:48, 2:8, "1-step out-of-sample MSFE")
+
+# Plot 3: Information criteria comparison
+get_results = function(steps) {
+  sapply(steps, function(i) {
+    res = colMeans(readRDS(sprintf("./mortality-results/%dstep-rolling.rds", i)))
+    c(res["BIC.VAR.AC"], res["HQC.VAR.AC"], res["fFPE.VAR.PC"])
+  })
+}
+
+results = get_results(1:12)
+plot(1:10, results[1,1:10], type="l", lwd=2, ylim=c(0.007,0.07), 
+     ylab="", xlab="", main="h-step MSFE using information criteria")
+lines(1:10, results[2,1:10], lwd=2, lty=2)
+lines(1:10, results[3,1:10], lty=2)
+legend("topleft", c("factor-BIC", "factor-HQC", "PCA-fFPE"), 
+       lwd=c(2,2,1), lty=c(1,2,2), cex=0.8, seg.len=3)
+```
+
+
+# Replication of Figure 5
+
+**Factor loadings and principal components for the mortality data**
+
+
+```{r, fig.height=4.5, fig.width=10, fig.align='center'}
+#| label: figure5
+par(mfrow = c(1,2))
+
+plot_components = function(comps, title, yrange=NULL) {
+  if (is.null(yrange)) {
+    yrange = range(c(fdaobj$eigenfunctions[,comps], cumacobj$eigenfunctions[,comps]))
+  }
+  plot(fdaobj$eigenfunctions[,comps[1]], type="l", lty=2, ylab="", xlab="", 
+       main=title, lwd=length(comps), ylim=yrange)
+  for (i in seq_along(comps)) {
+    lines(cumacobj$eigenfunctions[,comps[i]], lwd=length(comps)+1-i)
+    lines(fdaobj$eigenfunctions[,comps[i]], lty=2, lwd=length(comps)+1-i)
+  }
+}
+
+plot_components(1:3, "First three estimated components")
+legend("bottomleft", 
+       c("1st loading", "1st PC", "2nd loading", "2nd PC", "3rd loading", "3rd PC"),
+       lty=rep(c(1,2), 3), lwd=rep(c(3,2,1), each=2), cex=0.8, seg.len=3.2)
+
+plot_components(4:5, "Fourth and fifth estimated components", c(-0.61, max(c(fdaobj$eigenfunctions[,4:5], cumacobj$eigenfunctions[,4:5]))))
+legend("bottomleft",
+       c("4th loading", "4th PC", "5th loading", "5th PC"),
+       lty=rep(c(1,2), 2), lwd=rep(c(2,1), each=2), cex=0.8, seg.len=3.2)
+
+
+```
+
+
+
+# Replication of Figure 6
+
+**Loading Functions of the DNS model and yield curve data**
+
+
+```{r, fig.height=4.5, fig.width=15, fig.align='center'}
+#| label: figure6
+
+par(mfrow=c(1,3))
+
+# Nelson-Siegel loadings plot
+figure.DNS = function(lambda=0.0609, data.length=360, maturity.length=120) {
+ NSline = sapply(1:data.length, function(i) {
+   c(1, 
+     (1-exp(-lambda*i))/(lambda*i),
+     (1-exp(-lambda*i))/(lambda*i) - exp(-lambda*i))
+ }) |> t()
+ 
+ plot(1:maturity.length, NSline[1:maturity.length,1], 
+      type='l', ylim=c(0,1.5), lty=1, lwd=4,
+      xlab="Maturity (months)", ylab="", main="Nelson-Siegel loadings",
+      cex.lab=1.3, cex.axis=1.3, cex.main=2)
+ lines(1:maturity.length, NSline[1:maturity.length,2], lty=2, lwd=4)
+ lines(1:maturity.length, NSline[1:maturity.length,3], lty=4, lwd=3)
+ legend("top", c('Level', 'Slope', 'Curvature'), 
+        lty=c(1,2,4), lwd=c(4,4,3), seg.len=3, cex=1.2, 
+        pt.cex=2, horiz=TRUE, bty="n")
+}
+
+# Plot loadings function
+plot_loadings = function(loadings, title, signs=c(1,1,-1)) {
+ plot(FDAdata$workinggrid, signs[1]*loadings[,1], 
+      ylim=c(-0.15,0.15), type='l', lty=1, lwd=4,
+      xlab='Maturity (months)', ylab='', main=title,
+      cex.lab=1.3, cex.axis=1.3, cex.main=2)
+ lines(FDAdata$workinggrid, signs[2]*loadings[,2], lty=2, lwd=4)
+ lines(FDAdata$workinggrid, signs[3]*loadings[,3], lty=4, lwd=3)
+ 
+ psi_nums = (nrow(loadings)-2):nrow(loadings)
+ legend("top", parse(text=sprintf("hat(psi)[%d]", psi_nums)),
+        lty=c(1,2,4), lwd=c(4,4,3), pt.cex=2, cex=1.2,
+        seg.len=3, horiz=TRUE, bty="n")
+}
+
+# Create all plots
+figure.DNS(maturity.length=360)
+FDAdata = readRDS("./data/LW360-fda.rds")
+plot_loadings(FDAdata$eigenfunctions[,1:3], "First three estimated loadings", c(1,1,-1))
+plot_loadings(FDAdata$eigenfunctions[,4:6], "Fourth through sixth estimated loadings", c(1,-1,1))
+```
+
+
+
+# Replicate Figure 7
+
+**Rolling Estimation of K and p for the yield curve data**
+
+```{r, fig.height=5, fig.align='center', fig.width=10}
+#| label: figure7
+
+# Load and prep data
+K.all = readRDS("./yield-results/rollingK-w120.rds")
+time_points = c(1985.833, 1991.417, 1997.083, 2002.667, 2008.333, 2013.917)
+time_labels = c(
+ "Nov 1985-\nOct 1995", "Jun 1991-\nMay 2001", "Feb 1997-\nJan 2007",
+ "Sep 2002-\nAug 2012", "May 2008-\nApr 2018", "Dec 2013-\nNov 2023"
+)
+
+# Create filtered versions
+get_filtered = function(x) na.omit(stats::filter(x, rep(1/11, 11), sides = 2))
+filters = lapply(1:4, function(i) get_filtered(K.all[,i]))
+
+# Plotting function
+plot_rolling = function(data, filtered, title) {
+ plot(data, xaxt="n", col="black", lty=3, xlab="", ylab="", main=title)
+ lines(filtered, lwd=2)
+ axis(1, at=time_points, labels=time_labels, las=0, cex.axis=0.7)
+}
+
+# Create all plots
+par(mfrow=c(2,2))
+plot_rolling(K.all[,1], filters[[1]], "Rolling BIC estimation of K")
+plot_rolling(K.all[,2], filters[[2]], "Rolling HQC estimation of K")
+plot_rolling(K.all[,3], filters[[3]], "Rolling BIC estimation of p")
+plot_rolling(K.all[,4], filters[[4]], "Rolling HQC estimation of p")
+```
+
+
+
+# Replication of Table 4
+
+**Rolling out-of-sample MSFEs for the yield curve data**
+
+
+<!-- ```{r} -->
+<!-- # Helper functions -->
+<!-- get.MSEs = function(results) { -->
+<!--  indices = list(short=1:12, med=13:24, long=25:120) -->
+<!--  sapply(indices, function(i) colMeans(results[i, 1:12])) |> t() -->
+<!-- } -->
+
+<!-- # Function to process rolling windows  -->
+<!-- process_window = function(window_size) { -->
+<!--  relMSEs = matrix(ncol=11, nrow=12, -->
+<!--    dimnames=list( -->
+<!--      paste(rep(c("short", "med", "long"), 4),  -->
+<!--            rep(c("1step", "3step", "6step", "12step"), each=3)), -->
+<!--      c("DNS.VAR1", "DNS.VAR2", "BIC.ols", "HQC.ols", "FPC.ols",  -->
+<!--        "BIC.lasso", "BIC.ridge", "HQC.lasso", "HQC.ridge", "FPC.lasso", "FPC.ridge") -->
+<!--    )) -->
+
+<!--  # Calculate relative MSEs for each step -->
+<!--  for(step in c(1,3,6,12)) { -->
+<!--    results = readRDS(sprintf("./CheResults/YieldRolling%d-%dstep.rds", window_size, step)) -->
+<!--    rel.MSEs = get.MSEs(results)[,2:12] / get.MSEs(results)[,1] -->
+<!--    idx = ((step == 1) * 0 + (step == 3) * 3 + (step == 6) * 6 + (step == 12) * 9) -->
+<!--    relMSEs[(idx+1):(idx+3),] = round(rel.MSEs, 3) -->
+<!--  } -->
+
+<!--  # Select columns and save final table -->
+<!--  tab = relMSEs[,c(3,4,5,6,8,10,1,2)] -->
+<!--  saveRDS(tab, sprintf("tables/table4-%d.rds", window_size)) -->
+<!--  return(tab) -->
+<!-- } -->
+
+<!-- # Process both windows and display tables -->
+<!-- tab1 = process_window(120) -->
+<!-- tab2 = process_window(240) -->
+<!-- knitr::kable(tab1) -->
+<!-- knitr::kable(tab2) -->
+<!-- ``` -->
+
+
+
+```{r}
+# Helper functions
+get.MSEs = function(results) {
+ indices = list(short=1:12, med=13:24, long=25:120)
+ sapply(indices, function(i) colMeans(results[i, 1:12])) |> t()
+}
+
+# Function to process rolling windows
+process_window = function(window_size) {
+ relMSEs = matrix(ncol=11, nrow=12,
+   dimnames=list(
+     paste(rep(c("short", "med", "long"), 4), 
+           rep(c("1step", "3step", "6step", "12step"), each=3)),
+     c("DNS.VAR1", "DNS.VAR2", "BIC.ols", "HQC.ols", "FPC.ols", 
+       "BIC.lasso", "BIC.ridge", "HQC.lasso", "HQC.ridge", "FPC.lasso", "FPC.ridge")
+   ))
+ 
+ # Calculate relative MSEs for each step
+ for(step in c(1,3,6,12)) {
+   results = readRDS(sprintf("./CheResults/YieldRolling%d-%dstep.rds", window_size, step))
+   rel.MSEs = get.MSEs(results)[,2:12] / get.MSEs(results)[,1]
+   idx = ((step == 1) * 0 + (step == 3) * 3 + (step == 6) * 6 + (step == 12) * 9)
+   relMSEs[(idx+1):(idx+3),] = round(rel.MSEs, 3)
+ }
+ 
+ # Select columns and save final table
+ tab = relMSEs[,c(3,4,5,6,8,10,1,2)]
+ saveRDS(tab, sprintf("tables/table4-%d.rds", window_size))
+ 
+ # Create and save LaTeX table
+ latex_table = knitr::kable(tab, format="latex",
+   caption=sprintf("Out-of-sample MSFEs with rolling window of %d months", window_size),
+   booktabs=TRUE,
+   label=sprintf("tbl:table4-%d", window_size))
+ 
+ writeLines(c(
+   "\\begin{table}[htbp]",
+   "\\centering",
+   latex_table,
+   sprintf("\\label{tbl:table4-%d}", window_size),
+   "\\end{table}"
+ ), sprintf("tables/table4-%d.tex", window_size))
+ 
+ return(tab)
+}
+
+# Process both windows and display tables
+tab1 = process_window(120)
+tab2 = process_window(240)
+knitr::kable(tab1)
+knitr::kable(tab2)
+```
+

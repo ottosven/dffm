@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-#' JKV = load.JKV()
+#' JKV = load.LW()
 #' d = fda.preprocess(JKV)
 #' d$raw.data
 #' dffm.3Dplot(d)

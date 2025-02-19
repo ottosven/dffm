@@ -11,7 +11,7 @@
 #' @examples
 #' data = load.LW()
 load.LW = function(){
-  data = gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1-wmStGZHLx55dSYi3gQK2vb3F8dMw_Nb/edit?gid=378310471#gid=378310471')
+  data = gsheet::gsheet2tbl('https://docs.google.com/spreadsheets/d/1-wmStGZHLx55dSYi3gQK2vb3F8dMw_Nb/edit?gid=1606479329#gid=1606479329')
   df = data[-(1:8), -1]
   for(i in seq_along(df)) {
     if(is.character(df[[i]])) {
@@ -20,6 +20,6 @@ load.LW = function(){
   }
   LW.data = ts(df, start = c(1961,6), frequency=12)
   colnames(LW.data) = 1:360
-  LW.data = window(LW.data, start = 1986, end = c(2023,12))
+  LW.data = window(LW.data, start = c(1985,11), end = c(2023,12))
   return(LW.data)
 }

@@ -3,7 +3,7 @@ Type: Package
 Imports: stats, plot3D
 Suggests: ReconstPoFD, fda, fdapace, xts, tsbox, pracma, zoo, gsheet
 Title: Approximate Functional Factor Model
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person(given = "Sven",family = "Otto", role = c("aut", "cre"), email = "sven.otto@uni-bonn.de")
     person(given = "Justin",family = "Franken", role = c("cre"), email = "s3jufran@uni-bonn.de")
@@ -12,6 +12,6 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Depends: 
     R (>= 2.10)
