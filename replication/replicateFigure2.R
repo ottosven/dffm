@@ -3,7 +3,7 @@
 ## Supplement for
 ## "Approximate Factor Models for Functional Time Series"
 ## by Sven Otto and Nazarii Salish.
-## This R-script allows to reproduce Figure 1.
+## This R-script allows to reproduce Figure 2.
 ## ####################################################################
 ## ####################################################################
 rm(list=ls())
